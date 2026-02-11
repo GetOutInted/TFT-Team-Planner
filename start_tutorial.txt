@@ -1,0 +1,5 @@
+1. cd test-backend
+2. .\venv\Scripts\activate
+3. python .\app.py
+
+CRTL + C zum beenden
