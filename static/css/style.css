@@ -2,7 +2,7 @@
 body {
     background-color: #0f172a;
     color: #f8fafc;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -15,12 +15,11 @@ body {
     background: #1e293b;
     padding: 2.5rem;
     border-radius: 1rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
     text-align: center;
     width: 320px;
 }
 
-h1 { color: #38bdf8; margin-bottom: 1.5rem; }
+h1 { color: #38bdf8; }
 
 input {
     width: 100%;
@@ -33,81 +32,80 @@ input {
     box-sizing: border-box;
 }
 
-.button-group {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
 button {
-    flex: 1;
-    padding: 12px;
+    padding: 12px 24px;
     border-radius: 0.5rem;
     border: none;
     background: #3b82f6;
     color: white;
     font-weight: bold;
     cursor: pointer;
-    transition: transform 0.1s, background 0.2s;
 }
 
-button:hover { background: #2563eb; transform: translateY(-1px); }
-button.secondary { background: #475569; }
+button:hover { background: #2563eb; }
 
-/* Planner Bereich */
-#planner-section {
-    width: 90%;
-    max-width: 800px;
-}
-
+/* Header Optimierung: Abstand zwischen Name und Button */
 header {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; 
     align-items: center;
-    margin-bottom: 2rem;
-    padding: 1rem;
+    width: 100%;
+    margin-bottom: 3rem;
+    padding: 1rem 2rem;
     background: #1e293b;
-    border-radius: 0.5rem;
+    border-radius: 1rem;
+    box-sizing: border-box; /* Wichtig für gleichmäßiges Padding */
 }
+
+header h2 { margin: 0; }
 
 /* DAS BOARD-GRID */
 .board {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px; /* Vertikaler Abstand zwischen Reihen */
+    /* Wir nutzen kein Gap hier, da wir mit negativen Margins arbeiten */
 }
 
 .board-row {
     display: flex;
-    gap: 4px; /* Horizontaler Abstand zwischen Hexagonen */
+    margin-top: -21px; /* Reihen vertikal ineinanderschieben */
 }
 
-/* Der Versatz für das Wabenmuster (jede gerade Reihe) */
+.board-row:first-child {
+    margin-top: 0;
+}
+
+/* Der Versatz für das Wabenmuster: 
+   Halbe Breite (36px) + halber minimaler Abstand */
 .board-row:nth-child(even) {
-    margin-left: 38px; /* halbe Breite + halber Gap */
+    transform: translateX(37px); 
 }
 
-/* Hexagon Form & Design */
+/* Hexagon Design ohne klassische Border */
 .hex-slot {
     width: 72px;
-    height: 80px;
+    height: 82px;
     background: #2c2c54;
-    border: 1px solid #474787;
-    /* Erzeugt das Hexagon über Clip-Path */
+    position: relative;
+    /* Hexagon Clip */
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.75rem;
-    color: #636e72;
+    font-size: 0.8rem;
+    color: #888;
     cursor: pointer;
     transition: all 0.2s ease;
+    /* Wir nutzen eine Box-Shadow als "Ersatz-Border", 
+       da clip-path echte Border oft verzerrt */
+    box-shadow: inset 0 0 0 1px #474787; 
 }
 
 .hex-slot:hover {
     background: #4834d4;
     color: white;
-    transform: scale(1.05);
     z-index: 10;
+    transform: scale(1.05);
+    box-shadow: inset 0 0 0 2px #38bdf8;
 }

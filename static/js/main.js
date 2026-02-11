@@ -1,14 +1,14 @@
 // Konfiguration
-const API_URL = ""; // Leer lassen, wenn auf dem gleichen Server
+const API_URL = ""; 
 
 /**
  * Steuert Login und Registrierung
  */
 async function handleAuth(type) {
-    const usernameInput = document.getElementById('username').value;
-    const passwordInput = document.getElementById('password').value;
+    const userVal = document.getElementById('username').value;
+    const passVal = document.getElementById('password').value;
 
-    if (!usernameInput || !passwordInput) {
+    if (!userVal || !passVal) {
         alert("Bitte fülle alle Felder aus!");
         return;
     }
@@ -17,33 +17,28 @@ async function handleAuth(type) {
         const response = await fetch(`/${type}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                username: usernameInput, 
-                password: passwordInput 
-            })
+            body: JSON.stringify({ username: userVal, password: passVal })
         });
 
         const data = await response.json();
 
         if (response.ok) {
             if (type === 'login') {
-                // User-Daten im Browser-Speicher ablegen
                 localStorage.setItem('tft_user', JSON.stringify(data));
                 renderApp();
             } else {
-                alert("Registrierung erfolgreich! Du kannst dich jetzt einloggen.");
+                alert("Registrierung erfolgreich!");
             }
         } else {
             alert("Fehler: " + (data.error || "Unbekannter Fehler"));
         }
     } catch (err) {
-        console.error(err);
         alert("Server ist nicht erreichbar.");
     }
 }
 
 /**
- * Zeigt das Board an und generiert die Hexagone
+ * Generiert das Hexagon-Board
  */
 function renderApp() {
     const userString = localStorage.getItem('tft_user');
@@ -55,12 +50,11 @@ function renderApp() {
         document.getElementById('user-display').innerText = user.username;
         
         const board = document.getElementById('tft-board');
-        board.innerHTML = ''; // Vorher leeren
+        board.innerHTML = ''; 
 
         const rows = 4;
         const cols = 7;
 
-        // Erstelle Reihen für das Versatz-System
         for (let r = 0; r < rows; r++) {
             const rowDiv = document.createElement('div');
             rowDiv.className = 'board-row';
@@ -69,32 +63,23 @@ function renderApp() {
                 const slot = document.createElement('div');
                 slot.className = 'hex-slot';
                 
-                // Fortlaufende ID berechnen (0-27)
                 const slotId = (r * cols) + c;
                 slot.dataset.pos = slotId;
-                slot.innerText = slotId; // Später kommt hier das Unit-Bild rein
-
-                // Beispiel-Event für später
-                slot.onclick = () => console.log(`Feld ${slotId} geklickt`);
+                slot.innerText = slotId; 
 
                 rowDiv.appendChild(slot);
             }
             board.appendChild(rowDiv);
         }
     } else {
-        // Falls nicht eingeloggt, zeige Login
         document.getElementById('auth-section').style.display = 'block';
         document.getElementById('planner-section').style.display = 'none';
     }
 }
 
-/**
- * Loggt den Nutzer aus
- */
 function logout() {
     localStorage.removeItem('tft_user');
     location.reload();
 }
 
-// Beim Starten der Seite prüfen
 window.onload = renderApp;
