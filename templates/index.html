@@ -2,31 +2,29 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TFT Team Planner</title>
+    <title>TFT Set 16 Planner</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <div id="app">
-        <div id="auth-section">
-            <h1>TFT Planner</h1>
-            <div class="form-group">
-                <input type="text" id="username" placeholder="Nutzername">
-                <input type="password" id="password" placeholder="Passwort">
-            </div>
-            <div class="button-group">
-                <button onclick="handleAuth('login')">Einloggen</button>
-                <button onclick="handleAuth('register')" class="secondary">Registrieren</button>
-            </div>
-        </div>
+    <div id="auth-section">
+        <h1>TFT Planner</h1>
+        <input type="text" id="username" placeholder="Nutzername">
+        <input type="password" id="password" placeholder="Passwort">
+        <button onclick="handleAuth('login')">Login</button>
+        <button onclick="handleAuth('register')">Registrieren</button>
+    </div>
 
-        <div id="planner-section" style="display:none;">
-            <header>
-                <h2>Strategie von <span id="user-display"></span></h2>
-                <button onclick="logout()">Abmelden</button>
-            </header>
-            <div id="tft-board" class="board">
-                </div>
+    <div id="planner-section" style="display:none;">
+        <header>
+            <h2>Strategie von <span id="user-display"></span></h2>
+            <button onclick="logout()">Abmelden</button>
+        </header>
+
+        <div id="tft-board" class="board"></div>
+
+        <div class="unit-bank-container">
+            <h3>Champion Auswahl</h3>
+            <div id="unit-bank" class="unit-bank"></div>
         </div>
     </div>
 

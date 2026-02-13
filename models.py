@@ -9,8 +9,10 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
 
-class Board(db.Model):
+class Unit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    name = db.Column(db.String(100), default="Neues Team")
-    data = db.Column(db.Text, nullable=True) # Hier speichern wir später die Units als JSON-String
+    unit_id = db.Column(db.String(100), unique=True, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    cost = db.Column(db.Integer)
+    traits = db.Column(db.String(200)) # Gespeichert als "Mage, Rebel"
+    icon_path = db.Column(db.String(300))
