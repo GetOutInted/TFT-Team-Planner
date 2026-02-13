@@ -10,16 +10,17 @@ body {
     padding-top: 40px;
 }
 
-/* Auth-Container */
+/* Auth-Container (Login/Registrierung) */
 #auth-section {
     background: #1e293b;
     padding: 2.5rem;
     border-radius: 1rem;
     text-align: center;
     width: 320px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
 }
 
-h1 { color: #38bdf8; }
+h1 { color: #38bdf8; margin-top: 0; }
 
 input {
     width: 100%;
@@ -40,72 +41,87 @@ button {
     color: white;
     font-weight: bold;
     cursor: pointer;
+    transition: background 0.2s;
 }
 
 button:hover { background: #2563eb; }
 
-/* Header Optimierung: Abstand zwischen Name und Button */
+/* Header: Symmetrischer Abstand zwischen Name und Button */
 header {
     display: flex;
     justify-content: space-between; 
     align-items: center;
     width: 100%;
+    max-width: 800px; /* Hält den Header kompakt über dem Board */
     margin-bottom: 3rem;
     padding: 1rem 2rem;
     background: #1e293b;
     border-radius: 1rem;
-    box-sizing: border-box; /* Wichtig für gleichmäßiges Padding */
+    box-sizing: border-box;
 }
 
-header h2 { margin: 0; }
+header h2 { margin: 0; font-weight: 500; }
 
 /* DAS BOARD-GRID */
 .board {
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Wir nutzen kein Gap hier, da wir mit negativen Margins arbeiten */
+    padding-bottom: 50px;
 }
 
 .board-row {
     display: flex;
-    margin-top: -21px; /* Reihen vertikal ineinanderschieben */
+    gap: 6px; /* Horizontaler Abstand zwischen den Hex-Wrappern */
+    /* Negativer Margin, um die Reihen vertikal für das Wabenmuster zusammenzuziehen */
+    margin-top: -14px; 
 }
 
 .board-row:first-child {
     margin-top: 0;
 }
 
-/* Der Versatz für das Wabenmuster: 
-   Halbe Breite (36px) + halber minimaler Abstand */
+/* Präziser Versatz für die Wabenstruktur */
+/* Formel: (Wrapper-Breite 80px + Gap 6px) / 2 = 43px */
 .board-row:nth-child(even) {
-    transform: translateX(37px); 
+    transform: translateX(43px); 
 }
 
-/* Hexagon Design ohne klassische Border */
-.hex-slot {
-    width: 72px;
-    height: 82px;
-    background: #2c2c54;
-    position: relative;
-    /* Hexagon Clip */
+/* Die Hex-Hülle (erzeugt den Rand) */
+.hex-wrapper {
+    width: 80px;
+    height: 90px;
+    background: #474787; /* Die Standard-Randfarbe */
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem;
-    color: #888;
-    cursor: pointer;
     transition: all 0.2s ease;
-    /* Wir nutzen eine Box-Shadow als "Ersatz-Border", 
-       da clip-path echte Border oft verzerrt */
-    box-shadow: inset 0 0 0 1px #474787; 
 }
 
-.hex-slot:hover {
+/* Das eigentliche Hexagon (Inhalt) */
+.hex-slot {
+    width: 76px; /* Erzeugt einen exakten 2px Rand ringsum */
+    height: 86px;
+    background: #2c2c54;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    color: #94a3b8;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Hover-Effekte */
+.hex-wrapper:hover {
+    background: #38bdf8;
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+.hex-wrapper:hover .hex-slot {
     background: #4834d4;
     color: white;
-    z-index: 10;
-    transform: scale(1.05);
-    box-shadow: inset 0 0 0 2px #38bdf8;
 }
