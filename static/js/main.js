@@ -1,18 +1,14 @@
 /**
- * TFT Team Planner - Frontend Logik
+ * TFT Team Planner - Vollständige JS Logik
  */
 
-// 1. Authentifizierung: Login & Registrierung
-async function handleAuth(type) {
-    const userField = document.getElementById('username');
-    const passField = document.getElementById('password');
-    const userVal = userField.value;
-    const passVal = passField.value;
+let allUnits = []; 
 
-    if (!userVal || !passVal) {
-        alert("Bitte fülle alle Felder aus!");
-        return;
-    }
+// 1. Authentifizierung
+async function handleAuth(type) {
+    const userVal = document.getElementById('username').value;
+    const passVal = document.getElementById('password').value;
+    if (!userVal || !passVal) return alert("Bitte alle Felder ausfüllen!");
 
     try {
         const response = await fetch(`/${type}`, {
@@ -20,93 +16,97 @@ async function handleAuth(type) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username: userVal, password: passVal })
         });
-
         const data = await response.json();
-
         if (response.ok) {
             if (type === 'login') {
-                localStorage.setItem('tft_user', JSON.stringify(data));
+                sessionStorage.setItem('tft_user', JSON.stringify(data));
                 renderApp();
-            } else {
-                alert("Registrierung erfolgreich! Du kannst dich jetzt einloggen.");
-            }
-        } else {
-            alert("Fehler: " + (data.error || "Unbekannter Fehler"));
-        }
-    } catch (err) {
-        console.error("Auth-Fehler:", err);
-        alert("Server ist nicht erreichbar.");
-    }
+            } else { alert("Registrierung erfolgreich! Bitte einloggen."); }
+        } else { alert(data.error || "Fehler"); }
+    } catch (err) { console.error("Auth-Fehler:", err); }
 }
 
-// 2. Champion-Bank: Units vom Backend laden und anzeigen
+// 2. Laden der Daten
 async function loadUnitBank() {
     try {
         const response = await fetch('/api/units');
-        const units = await response.json();
-        
-        const bank = document.getElementById('unit-bank');
-        if (!bank) return;
-        
-        bank.innerHTML = '';
-
-        console.log("Units empfangen:", units.length);
-
-        if (units.length === 0) {
-            bank.innerHTML = '<p style="color: #94a3b8; grid-column: 1/-1;">Keine Champions in der Datenbank. Bitte app.py neu starten.</p>';
-            return;
-        }
-
-        units.forEach(unit => {
-            const card = document.createElement('div');
-            card.className = 'unit-card';
-            
-            // onerror sorgt für ein Ersatzbild, falls der Pfad von CommunityDragon hakt
-            card.innerHTML = `
-                <img src="${unit.icon}" 
-                     class="unit-icon cost-${unit.cost}" 
-                     alt="${unit.name}"
-                     onerror="this.src='https://via.placeholder.com/50/2c2c54/ffffff?text=?'">
-                <div class="unit-name">${unit.name}</div>
-            `;
-            
-            card.onclick = () => {
-                console.log("Champion ausgewählt:", unit.name, "Traits:", unit.traits);
-                // Hier kommt später die Platzierungs-Logik hin
-            };
-            
-            bank.appendChild(card);
-        });
-    } catch (e) {
-        console.error("Fehler beim Laden der Unit-Bank:", e);
-    }
+        allUnits = await response.json();
+        populateTraitFilter();
+        displayUnits(allUnits);
+    } catch (e) { console.error("Fehler beim Laden:", e); }
 }
 
-// 3. Board-Generierung: Das Hexagon-Spielfeld zeichnen
+// 3. Filter-Logik
+function populateTraitFilter() {
+    const traitSelect = document.getElementById('trait-filter');
+    if (!traitSelect) return;
+    traitSelect.innerHTML = '<option value="">Alle Traits</option>';
+    
+    const traits = new Set();
+    allUnits.forEach(u => u.traits.forEach(t => traits.add(t)));
+    
+    Array.from(traits).sort().forEach(trait => {
+        const opt = document.createElement('option');
+        opt.value = trait;
+        opt.innerText = trait;
+        traitSelect.appendChild(opt);
+    });
+}
+
+function filterUnits() {
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    const traitTerm = document.getElementById('trait-filter').value;
+    const costTerm = document.getElementById('cost-filter').value;
+
+    const filtered = allUnits.filter(unit => {
+        const matchesSearch = unit.name.toLowerCase().includes(searchTerm);
+        const matchesTrait = traitTerm === "" || unit.traits.includes(traitTerm);
+        const matchesCost = costTerm === "" || unit.cost.toString() === costTerm;
+        return matchesSearch && matchesTrait && matchesCost;
+    });
+    displayUnits(filtered);
+}
+
+// 4. Anzeige der Einheiten
+function displayUnits(units) {
+    const bank = document.getElementById('unit-bank');
+    if (!bank) return;
+    bank.innerHTML = '';
+
+    units.forEach(unit => {
+        const card = document.createElement('div');
+        card.className = 'unit-card';
+        const initial = unit.name ? unit.name.charAt(0) : '?';
+        
+        card.innerHTML = `
+            <div class="icon-container cost-${unit.cost}">
+                <img src="${unit.icon}" class="unit-icon" alt="${unit.name}"
+                     onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=fallback-char>${initial}</span>'">
+            </div>
+            <div class="unit-name">${unit.name}</div>
+        `;
+
+        card.onclick = () => {
+            console.log("Ausgewählt:", unit.name);
+        };
+        
+        bank.appendChild(card);
+    });
+}
+
+// 5. Board Zeichnen
 function drawBoard() {
     const board = document.getElementById('tft-board');
     if (!board) return;
-    
     board.innerHTML = ''; 
-
-    const rows = 4;
-    const cols = 7;
-
-    for (let r = 0; r < rows; r++) {
+    for (let r = 0; r < 4; r++) {
         const rowDiv = document.createElement('div');
         rowDiv.className = 'board-row';
-
-        for (let c = 0; c < cols; c++) {
+        for (let c = 0; c < 7; c++) {
             const wrapper = document.createElement('div');
             wrapper.className = 'hex-wrapper';
-
             const slot = document.createElement('div');
             slot.className = 'hex-slot';
-            
-            const slotId = (r * cols) + c;
-            slot.dataset.pos = slotId;
-            // slot.innerText = slotId; // Optional: ID anzeigen zum Debuggen
-
             wrapper.appendChild(slot);
             rowDiv.appendChild(wrapper);
         }
@@ -114,19 +114,15 @@ function drawBoard() {
     }
 }
 
-// 4. App-Status: Prüfen ob eingeloggt und Ansicht umschalten
 function renderApp() {
-    const userString = localStorage.getItem('tft_user');
+    const userString = sessionStorage.getItem('tft_user');
     const authSection = document.getElementById('auth-section');
     const plannerSection = document.getElementById('planner-section');
     
     if (userString) {
-        const user = JSON.parse(userString);
         authSection.style.display = 'none';
         plannerSection.style.display = 'block';
-        document.getElementById('user-display').innerText = user.username;
-        
-        // Erst das Board bauen, dann die Champions laden
+        document.getElementById('user-display').innerText = JSON.parse(userString).username;
         drawBoard();
         loadUnitBank();
     } else {
@@ -135,11 +131,5 @@ function renderApp() {
     }
 }
 
-// 5. Logout
-function logout() {
-    localStorage.removeItem('tft_user');
-    location.reload();
-}
-
-// Initialisierung beim Seitenstart
+function logout() { sessionStorage.clear(); location.reload(); }
 window.onload = renderApp;

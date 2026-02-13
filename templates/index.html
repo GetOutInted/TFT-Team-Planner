@@ -7,12 +7,16 @@
 </head>
 <body>
     <div id="auth-section">
-        <h1>TFT Planner</h1>
+    <h1>TFT Team Planner</h1>
+    <div class="auth-form">
         <input type="text" id="username" placeholder="Nutzername">
         <input type="password" id="password" placeholder="Passwort">
-        <button onclick="handleAuth('login')">Login</button>
-        <button onclick="handleAuth('register')">Registrieren</button>
+        <div class="auth-buttons">
+            <button onclick="handleAuth('login')">Login</button>
+            <button onclick="handleAuth('register')">Registrieren</button>
+        </div>
     </div>
+</div>
 
     <div id="planner-section" style="display:none;">
         <header>
@@ -24,6 +28,26 @@
 
         <div class="unit-bank-container">
             <h3>Champion Auswahl</h3>
+            
+
+            <div class="filter-bar">
+    <input type="text" id="search-input" placeholder="Champion suchen..." oninput="filterUnits()">
+    
+    <select id="trait-filter" onchange="filterUnits()">
+        <option value="">Alle Traits</option>
+        </select>
+
+    <select id="cost-filter" onchange="filterUnits()">
+        <option value="">Alle Kosten</option>
+        <option value="1">1 Gold</option>
+        <option value="2">2 Gold</option>
+        <option value="3">3 Gold</option>
+        <option value="4">4 Gold</option>
+        <option value="5">5 Gold</option>
+    </select>
+</div>
+
+
             <div id="unit-bank" class="unit-bank"></div>
         </div>
     </div>
