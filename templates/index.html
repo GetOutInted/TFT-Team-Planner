@@ -2,20 +2,21 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>TFT Set 16 Planner</title>
+    <title>TFT Planner Set 16 </title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/tft_logo.png') }}">
 </head>
 <body>
     <div id="auth-section">
-    <h1>TFT Team Planner</h1>
-    <div class="auth-form">
-        <input type="text" id="username" placeholder="Nutzername">
-        <input type="password" id="password" placeholder="Passwort">
+    <form class="auth-form" id="login-form">
+        <h1>TFT Team Planner</h1>
+        <input type="text" id="username" placeholder="Nutzername" required>
+        <input type="password" id="password" placeholder="Passwort" required>
         <div class="auth-buttons">
-            <button onclick="handleAuth('login')">Login</button>
-            <button onclick="handleAuth('register')">Registrieren</button>
+            <button type="submit">Login</button>
+            <button type="button" onclick="handleAuth('register')">Registrieren</button>
         </div>
-    </div>
+    </form>
 </div>
 
     <div id="planner-section" style="display:none;">
@@ -39,11 +40,11 @@
 
     <select id="cost-filter" onchange="filterUnits()">
         <option value="">Alle Kosten</option>
-        <option value="1">1 Gold</option>
-        <option value="2">2 Gold</option>
-        <option value="3">3 Gold</option>
-        <option value="4">4 Gold</option>
-        <option value="5">5 Gold</option>
+        <option value="1">1 Cost</option>
+        <option value="2">2 Cost</option>
+        <option value="3">3 Cost</option>
+        <option value="4">4 Cost</option>
+        <option value="5">5 Cost</option>
     </select>
 </div>
 

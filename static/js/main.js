@@ -1,13 +1,17 @@
 /**
- * TFT Team Planner - Vollständige JS Logik
+ * TFT Team Planner - Vollständige JS Logik mit Enter-Login
  */
 
 let allUnits = []; 
 
-// 1. Authentifizierung
-async function handleAuth(type) {
+// 1. Authentifizierung (angepasst für Form-Events)
+async function handleAuth(type, event) {
+    // Verhindert das Neuladen der Seite bei Form-Submit
+    if (event) event.preventDefault();
+
     const userVal = document.getElementById('username').value;
     const passVal = document.getElementById('password').value;
+    
     if (!userVal || !passVal) return alert("Bitte alle Felder ausfüllen!");
 
     try {
@@ -17,16 +21,23 @@ async function handleAuth(type) {
             body: JSON.stringify({ username: userVal, password: passVal })
         });
         const data = await response.json();
+        
         if (response.ok) {
             if (type === 'login') {
                 sessionStorage.setItem('tft_user', JSON.stringify(data));
                 renderApp();
-            } else { alert("Registrierung erfolgreich! Bitte einloggen."); }
-        } else { alert(data.error || "Fehler"); }
-    } catch (err) { console.error("Auth-Fehler:", err); }
+            } else { 
+                alert("Registrierung erfolgreich! Du kannst dich jetzt einloggen."); 
+            }
+        } else { 
+            alert(data.error || "Fehler bei der Authentifizierung"); 
+        }
+    } catch (err) { 
+        console.error("Auth-Fehler:", err); 
+    }
 }
 
-// 2. Laden der Daten
+// 2. Daten laden
 async function loadUnitBank() {
     try {
         const response = await fetch('/api/units');
@@ -41,10 +52,8 @@ function populateTraitFilter() {
     const traitSelect = document.getElementById('trait-filter');
     if (!traitSelect) return;
     traitSelect.innerHTML = '<option value="">Alle Traits</option>';
-    
     const traits = new Set();
     allUnits.forEach(u => u.traits.forEach(t => traits.add(t)));
-    
     Array.from(traits).sort().forEach(trait => {
         const opt = document.createElement('option');
         opt.value = trait;
@@ -57,7 +66,6 @@ function filterUnits() {
     const searchTerm = document.getElementById('search-input').value.toLowerCase();
     const traitTerm = document.getElementById('trait-filter').value;
     const costTerm = document.getElementById('cost-filter').value;
-
     const filtered = allUnits.filter(unit => {
         const matchesSearch = unit.name.toLowerCase().includes(searchTerm);
         const matchesTrait = traitTerm === "" || unit.traits.includes(traitTerm);
@@ -72,24 +80,16 @@ function displayUnits(units) {
     const bank = document.getElementById('unit-bank');
     if (!bank) return;
     bank.innerHTML = '';
-
     units.forEach(unit => {
         const card = document.createElement('div');
         card.className = 'unit-card';
-        const initial = unit.name ? unit.name.charAt(0) : '?';
-        
         card.innerHTML = `
             <div class="icon-container cost-${unit.cost}">
                 <img src="${unit.icon}" class="unit-icon" alt="${unit.name}"
-                     onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=fallback-char>${initial}</span>'">
+                     onerror="this.style.display='none'; this.parentElement.innerHTML='?'">
             </div>
             <div class="unit-name">${unit.name}</div>
         `;
-
-        card.onclick = () => {
-            console.log("Ausgewählt:", unit.name);
-        };
-        
         bank.appendChild(card);
     });
 }
@@ -114,11 +114,18 @@ function drawBoard() {
     }
 }
 
+// 6. App State & Event Listener
 function renderApp() {
     const userString = sessionStorage.getItem('tft_user');
     const authSection = document.getElementById('auth-section');
     const plannerSection = document.getElementById('planner-section');
+    const loginForm = document.getElementById('login-form');
     
+    // Event Listener für das Enter-Drücken (Submit)
+    if (loginForm) {
+        loginForm.onsubmit = (e) => handleAuth('login', e);
+    }
+
     if (userString) {
         authSection.style.display = 'none';
         plannerSection.style.display = 'block';
@@ -126,7 +133,7 @@ function renderApp() {
         drawBoard();
         loadUnitBank();
     } else {
-        authSection.style.display = 'block';
+        authSection.style.display = 'flex';
         plannerSection.style.display = 'none';
     }
 }

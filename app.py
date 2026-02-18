@@ -15,7 +15,7 @@ bcrypt.init_app(app)
 
 # --- IMPORT LOGIK FÜR SET 16 ---
 def setup_units_from_json():
-    url = "https://raw.communitydragon.org/latest/cdragon/tft/de_de.json"
+    url = "https://raw.communitydragon.org/latest/cdragon/tft/en_us.json"
     print("--- Starte Champion-Import für Set 16 ---")
     try:
         response = requests.get(url, timeout=10)
