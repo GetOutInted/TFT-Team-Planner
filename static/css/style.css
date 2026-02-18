@@ -1,18 +1,69 @@
 /* Grundlayout */
 body {
-    background-color: #0f172a; /* Der Haupt-Hintergrund */
+    background-color: #0f172a;
     color: white;
     font-family: 'Segoe UI', Roboto, sans-serif;
     margin: 0;
+    min-height: 100vh;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
 }
 
-#auth-section, #planner-section {
-    max-width: 1000px;
+/* --- FIX: Anmeldung Zentrierung & Design --- */
+#auth-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Nimmt volle Höhe ein */
     width: 100%;
-    padding: 20px;
+    background-color: #0f172a;
+}
+
+.auth-form {
+    background: #1e293b;
+    padding: 40px;
+    border-radius: 16px;
+    border: 1px solid #334155;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     text-align: center;
+    width: 100%;
+    max-width: 400px; /* Damit es nicht zu breit wird */
+}
+
+.auth-form h1 {
+    margin-top: 0;
+    margin-bottom: 24px;
+    font-size: 2rem;
+    color: #f8fafc;
+}
+
+/* Inputs untereinander stapeln */
+.auth-form input {
+    display: block;
+    width: 100%;
+    margin: 15px 0;
+    padding: 12px 16px;
+    background: #111827;
+    border: 1px solid #374151;
+    color: white;
+    border-radius: 8px;
+    outline: none;
+    font-size: 1rem;
+    box-sizing: border-box; /* Wichtig für die Breite inkl. Padding */
+    transition: border-color 0.2s;
+}
+
+.auth-form input:focus {
+    border-color: #38bdf8;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 20px;
 }
 
 /* --- Buttons --- */
@@ -20,184 +71,112 @@ button, .btn {
     background-color: #38bdf8;
     color: #0f172a;
     border: none;
-    padding: 10px 24px;
-    border-radius: 6px;
+    padding: 12px 24px;
+    border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    font-size: 0.95rem;
 }
 
 button:hover {
     background-color: #7dd3fc;
-    box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
 }
 
-/* --- Moderne Filter Bar --- */
-.filter-bar {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 25px;
-    background: #1e293b;
-    padding: 12px;
-    border-radius: 12px;
-    border: 1px solid #334155;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+/* --- Planner Section Styles --- */
+#planner-section {
+    max-width: 1200px;
+    width: 100%;
+    padding: 20px;
 }
 
-.filter-bar input, .filter-bar select {
-    background: #111827;
-    border: 1px solid #374151;
-    color: #f3f4f6;
-    padding: 10px 16px;
-    border-radius: 8px;
-    outline: none;
-    font-size: 0.9rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.filter-bar input { flex-grow: 1; }
-
-.filter-bar input:focus, .filter-bar select:focus {
-    border-color: #38bdf8;
-    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
-}
-
-/* --- Board Layout (Hintergrund entfernt) --- */
-#tft-board {
+.planner-header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    margin: 20px 0 50px 0;
-    background: transparent; /* Board-Hintergrund ist jetzt unsichtbar */
-    padding: 10px;
+    gap: 15px;
+    margin-bottom: 30px;
 }
 
-.board-row {
+.main-planner-area {
     display: flex;
-    gap: 4px;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 30px;
+    margin-bottom: 40px;
 }
 
-.board-row:nth-child(even) {
-    transform: translateX(42px);
+.synergy-sidebar {
+    width: 200px;
+    background: #1e293b;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid #334155;
+    min-height: 300px;
 }
+
+.synergy-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #0f172a;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    border-left: 4px solid #38bdf8;
+}
+
+/* --- Board --- */
+#tft-board { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.board-row { display: flex; gap: 4px; }
+.board-row:nth-child(even) { transform: translateX(42px); }
 
 .hex-wrapper {
-    width: 80px;
-    height: 90px;
-    background: #1e293b; /* Rahmen der Hex-Felder */
+    width: 80px; height: 90px;
+    background: #1e293b;
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
 }
 
 .hex-slot {
-    width: 74px;
-    height: 84px;
-    background: #0f172a; /* Innenseite der Hex-Felder (wie Body-Hintergrund) */
+    width: 74px; height: 84px;
+    background: #0f172a;
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-    transition: background 0.2s;
-    cursor: pointer;
+    transition: 0.2s;
 }
 
-.hex-slot:hover {
-    background: #1e293b;
+.hex-slot.drag-over { background: #334155; }
+.hex-slot img { width: 100%; height: 100%; object-fit: cover; }
+
+/* --- Bank & Filter --- */
+.filter-bar {
+    display: flex; gap: 12px; margin-bottom: 25px;
+    background: #1e293b; padding: 12px; border-radius: 12px;
 }
 
-/* --- Champion Bank --- */
+.filter-bar input, .filter-bar select {
+    background: #111827; border: 1px solid #374151;
+    color: white; padding: 10px; border-radius: 8px;
+}
+
 #unit-bank {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    gap: 15px;
-    background: #1e293b;
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px solid #334155;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 15px; background: #1e293b; padding: 20px; border-radius: 12px;
 }
 
-.unit-card {
-    cursor: pointer;
-    text-align: center;
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.unit-card:hover { transform: scale(1.1); }
-
+.unit-card { cursor: grab; text-align: center; }
 .icon-container {
-    width: 60px;
-    height: 60px;
-    margin: 0 auto 8px;
-    border-radius: 8px;
-    overflow: hidden;
-    border: 3px solid #475569; 
-    background: #111827;
-    box-sizing: border-box;
+    width: 60px; height: 60px; margin: 0 auto 8px;
+    border-radius: 8px; overflow: hidden; border: 3px solid #475569;
 }
-
 .unit-icon { width: 100%; height: 100%; object-fit: cover; }
 .unit-name { font-size: 0.75rem; color: #9ca3af; }
 
-/* Kosten-Farben */
+/* Kostenfarben */
 .icon-container.cost-1 { border-color: #94a3b8 !important; }
 .icon-container.cost-2 { border-color: #22c55e !important; }
 .icon-container.cost-3 { border-color: #3b82f6 !important; }
 .icon-container.cost-4 { border-color: #a855f7 !important; }
 .icon-container.cost-5 { border-color: #eab308 !important; }
-
-/* Auth Formular */
-/* Grundlayout Ergänzung */
-body {
-    background-color: #0f172a;
-    color: white;
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center; /* Zentriert den Inhalt vertikal, falls gewünscht */
-    min-height: 100vh;   /* Sorgt dafür, dass der Body das ganze Fenster füllt */
-}
-
-/* Auth Formular - Optimiert */
-.auth-form {
-    background: #1e293b;
-    padding: 40px;
-    border-radius: 16px;
-    border: 1px solid #334155;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-    
-    /* Wichtig für die Zentrierung der Kinder-Elemente */
-    display: flex;
-    flex-direction: column;
-    align-items: center; 
-    max-width: 400px;    /* Begrenzt die Breite der Box */
-    margin: 0 auto;      /* Zentriert die Box im Container */
-}
-
-.auth-form h2 {
-    margin-top: 0;
-    margin-bottom: 24px;
-}
-
-.auth-form input {
-    display: block;
-    width: 100%;         /* Nutzt die Breite des Containers */
-    max-width: 300px;    /* Aber nicht breiter als 300px */
-    margin: 8px 0;       /* Gleichmäßiger Abstand */
-    padding: 12px;
-    background: #111827;
-    border: 1px solid #374151;
-    color: white;
-    border-radius: 8px;
-    font-size: 1rem;
-    box-sizing: border-box; /* Verhindert, dass Padding die Breite sprengt */
-}
-
-/* Container für die Buttons, damit sie nebeneinander stehen */
-.auth-buttons {
-    display: flex;
-    gap: 12px;
-    margin-top: 20px;
-    width: 100%;
-    justify-content: center;
-}
