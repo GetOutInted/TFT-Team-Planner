@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TFT Team Planner</title>
-    
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/tft_logo.png') }}">
-    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -24,32 +22,24 @@
     </div>
 
     <div id="planner-section" style="display: none;">
-        
         <div class="planner-header">
             <h2>Strategie von <span id="user-display"></span></h2>
             <button onclick="logout()">Abmelden</button>
         </div>
 
         <div class="main-planner-area">
-            <div id="synergy-sidebar" class="synergy-sidebar">
-                <h4 style="margin-top: 0; color: #38bdf8; text-align: center;">Synergien</h4>
-                <div id="synergy-list">
-                    </div>
+            <div class="synergy-sidebar">
+                <h4 style="margin: 0 0 15px 0; color: #38bdf8; text-align: center;">Synergien</h4>
+                <div id="synergy-list"></div>
             </div>
-
-            <div id="tft-board">
-                </div>
+            <div id="tft-board"></div>
         </div>
 
-        <h3 style="text-align: center; margin-top: 40px; margin-bottom: 20px;">Champion Auswahl</h3>
+        <h3 style="text-align: center; margin-bottom: 20px;">Champion Auswahl</h3>
         
         <div class="filter-bar">
-            <input type="text" id="search-input" placeholder="Champion suchen..." oninput="filterUnits()">
-            
-            <select id="trait-filter" onchange="filterUnits()">
-                <option value="">Alle Traits</option>
-            </select>
-
+            <input type="text" id="search-input" placeholder="Champion suchen..." oninput="filterUnits()" style="flex: 1;">
+            <select id="trait-filter" onchange="filterUnits()"></select>
             <select id="cost-filter" onchange="filterUnits()">
                 <option value="">Alle Kosten</option>
                 <option value="1">1 Gold</option>
@@ -60,8 +50,7 @@
             </select>
         </div>
 
-        <div id="unit-bank">
-            </div>
+        <div id="unit-bank"></div>
     </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

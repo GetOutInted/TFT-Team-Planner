@@ -1,182 +1,94 @@
-/* Grundlayout */
+/* --- 1. GLOBAL SCROLLBAR DESIGN --- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #1e293b; }
+::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
+
+* { scrollbar-width: thin; scrollbar-color: #475569 #1e293b; }
+
+/* --- 2. GRUNDLAYOUT --- */
 body {
-    background-color: #0f172a;
-    color: white;
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    margin: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    background-color: #0f172a; color: white;
+    font-family: 'Segoe UI', Roboto, sans-serif; margin: 0;
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
 }
 
-/* --- FIX: Anmeldung Zentrierung & Design --- */
-#auth-section {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh; /* Nimmt volle Höhe ein */
-    width: 100%;
-    background-color: #0f172a;
-}
-
+/* --- 3. AUTH SEKTION --- */
+#auth-section { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; width: 100%; }
 .auth-form {
-    background: #1e293b;
-    padding: 40px;
-    border-radius: 16px;
-    border: 1px solid #334155;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    text-align: center;
-    width: 100%;
-    max-width: 400px; /* Damit es nicht zu breit wird */
+    background: #1e293b; padding: 40px; border-radius: 16px; border: 1px solid #334155;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; width: 100%; max-width: 350px;
 }
-
-.auth-form h1 {
-    margin-top: 0;
-    margin-bottom: 24px;
-    font-size: 2rem;
-    color: #f8fafc;
-}
-
-/* Inputs untereinander stapeln */
 .auth-form input {
-    display: block;
-    width: 100%;
-    margin: 15px 0;
-    padding: 12px 16px;
-    background: #111827;
-    border: 1px solid #374151;
-    color: white;
-    border-radius: 8px;
-    outline: none;
-    font-size: 1rem;
-    box-sizing: border-box; /* Wichtig für die Breite inkl. Padding */
-    transition: border-color 0.2s;
+    display: block; width: 100%; margin: 15px 0; padding: 12px;
+    background: #111827; border: 1px solid #374151; color: white; border-radius: 8px; box-sizing: border-box;
 }
 
-.auth-form input:focus {
-    border-color: #38bdf8;
-}
-
-.auth-buttons {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-top: 20px;
-}
-
-/* --- Buttons --- */
-button, .btn {
-    background-color: #38bdf8;
-    color: #0f172a;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 0.95rem;
-}
-
-button:hover {
-    background-color: #7dd3fc;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
-}
-
-/* --- Planner Section Styles --- */
-#planner-section {
-    max-width: 1200px;
-    width: 100%;
-    padding: 20px;
-}
-
-.planner-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 30px;
-}
-
-.main-planner-area {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 30px;
-    margin-bottom: 40px;
-}
+/* --- 4. PLANNER LAYOUT --- */
+#planner-section { max-width: 1100px; width: 100%; padding: 20px; }
+.planner-header { text-align: center; margin-bottom: 30px; }
+.main-planner-area { display: flex; justify-content: center; align-items: flex-start; gap: 30px; margin-bottom: 40px; }
 
 .synergy-sidebar {
-    width: 200px;
-    background: #1e293b;
-    padding: 15px;
-    border-radius: 12px;
-    border: 1px solid #334155;
-    min-height: 300px;
+    width: 200px; background: #1e293b; padding: 15px; border-radius: 12px;
+    border: 1px solid #334155; max-height: 340px; overflow-y: auto; /* Scrollbar-Fix */
 }
-
 .synergy-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #0f172a;
-    padding: 10px;
-    margin-bottom: 8px;
-    border-radius: 6px;
-    border-left: 4px solid #38bdf8;
+    display: flex; justify-content: space-between; align-items: center;
+    background: #0f172a; padding: 8px 12px; margin-bottom: 8px;
+    border-radius: 6px; border-left: 4px solid #38bdf8; font-size: 0.9rem;
 }
+.synergy-count { background: #38bdf8; color: #0f172a; font-weight: bold; padding: 2px 6px; border-radius: 4px; }
 
-/* --- Board --- */
+/* --- 5. BOARD & HEX (Rahmen & Zentrierung) --- */
 #tft-board { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .board-row { display: flex; gap: 4px; }
 .board-row:nth-child(even) { transform: translateX(42px); }
 
 .hex-wrapper {
     width: 80px; height: 90px;
-    background: #1e293b;
+    background: #1e293b; /* Standard-Rahmenfarbe */
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
 }
 
 .hex-slot {
     width: 74px; height: 84px;
     background: #0f172a;
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-    transition: 0.2s;
+    position: relative; cursor: pointer; overflow: hidden;
 }
+/* Bild-Zentrierungs-Fix */
+.hex-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-.hex-slot.drag-over { background: #334155; }
-.hex-slot img { width: 100%; height: 100%; object-fit: cover; }
+/* --- 6. BANK & CUSTOM SELECTS --- */
+.filter-bar { display: flex; gap: 10px; margin-bottom: 20px; background: #1e293b; padding: 15px; border-radius: 12px; }
+.filter-bar input { background: #111827; border: 1px solid #374151; color: white; padding: 10px; border-radius: 8px; outline: none; }
 
-/* --- Bank & Filter --- */
-.filter-bar {
-    display: flex; gap: 12px; margin-bottom: 25px;
-    background: #1e293b; padding: 12px; border-radius: 12px;
-}
-
-.filter-bar input, .filter-bar select {
-    background: #111827; border: 1px solid #374151;
-    color: white; padding: 10px; border-radius: 8px;
+.filter-bar select {
+    background: #111827; border: 1px solid #374151; color: white;
+    padding: 10px 30px 10px 10px; border-radius: 8px; outline: none; cursor: pointer;
+    -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; background-size: 16px;
 }
 
 #unit-bank {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    gap: 15px; background: #1e293b; padding: 20px; border-radius: 12px;
+    gap: 15px; background: #1e293b; padding: 20px; border-radius: 12px; max-height: 400px; overflow-y: auto;
 }
 
-.unit-card { cursor: grab; text-align: center; }
-.icon-container {
-    width: 60px; height: 60px; margin: 0 auto 8px;
-    border-radius: 8px; overflow: hidden; border: 3px solid #475569;
-}
-.unit-icon { width: 100%; height: 100%; object-fit: cover; }
-.unit-name { font-size: 0.75rem; color: #9ca3af; }
+.icon-container { width: 60px; height: 60px; margin: 0 auto; border-radius: 8px; overflow: hidden; border: 3px solid #475569; display: flex; justify-content: center; align-items: center; }
+.unit-icon { width: 100%; height: 100%; object-fit: cover; display: block; }
+.unit-name { font-size: 0.7rem; margin-top: 5px; color: #94a3b8; text-align: center; }
 
-/* Kostenfarben */
-.icon-container.cost-1 { border-color: #94a3b8 !important; }
-.icon-container.cost-2 { border-color: #22c55e !important; }
-.icon-container.cost-3 { border-color: #3b82f6 !important; }
-.icon-container.cost-4 { border-color: #a855f7 !important; }
-.icon-container.cost-5 { border-color: #eab308 !important; }
+/* --- KOSTENFARBEN --- */
+.cost-1 { border-color: #94a3b8 !important; } .hex-wrapper.cost-1 { background: #94a3b8 !important; }
+.cost-2 { border-color: #22c55e !important; } .hex-wrapper.cost-2 { background: #22c55e !important; }
+.cost-3 { border-color: #3b82f6 !important; } .hex-wrapper.cost-3 { background: #3b82f6 !important; }
+.cost-4 { border-color: #a855f7 !important; } .hex-wrapper.cost-4 { background: #a855f7 !important; }
+.cost-5 { border-color: #eab308 !important; } .hex-wrapper.cost-5 { background: #eab308 !important; }
+
+button { background: #38bdf8; color: #0f172a; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+button:hover { background: #7dd3fc; }
