@@ -2,14 +2,54 @@ let allUnits = [];
 let draggedFromSlot = null;
 
 const traitData = {
-    "Noxus": [3, 5, 7, 10], "Demacia": [3, 5, 7, 9], "Ionia": [3, 6, 9],
-    "Freljord": [2, 3, 4], "Zaun": [2, 4, 6], "Void": [3, 6, 8],
-    "Yordle": [3, 5], "Arcanist": [2, 4, 6, 8], "Bruiser": [2, 4, 6],
-    "Bilgewater": [3, 5, 7, 9], "Shadow Isles": [2, 4, 6], "Shurima": [3, 5, 7, 9],
-    "Targon": [2, 3, 4], "Ixtal": [2, 3, 4], "Piltover": [3, 6],
-    "Invoker": [2, 4, 6], "Juggernaut": [2, 4, 6], "Vanquisher": [2, 4, 6],
-    "Warden": [2, 4, 6], "Quickstriker": [2, 3, 4], "The Boss": [1],
-    "Star Forger": [1], "Emperor": [1], "Ascendant": [1], "Eternal": [1]
+    "Arcanist": [2, 4, 6],
+    "Ascendant": [1],
+    "Assimilator": [1],
+    "Bilgewater": [3, 5, 7, 10],
+    "Blacksmith": [1],
+    "Bruiser": [2, 4, 6],
+    "Caretaker": [1],
+    "Chainbreaker": [1],
+    "Chronokeeper": [1],
+    "Dark Child": [1],
+    "Darkin": [1, 2, 3],
+    "Defender": [2, 4, 6],
+    "Demacia": [3, 5, 7, 11],
+    "Disruptor": [2, 4],
+    "Dragonborn": [1],
+    "Emperor": [1],
+    "Eternal": [1],
+    "Freljord": [3, 5, 7],
+    "Glutton": [1],
+    "Gunslinger": [2, 4],
+    "Harvester": [1],
+    "Heroic": [1],
+    "HexMech": [1],
+    "Huntress": [1],
+    "Immortal": [1],
+    "Invoker": [2, 4],
+    "Ionia": [3, 5, 7, 10],
+    "Ixtal": [3, 5, 7],
+    "Juggernaut": [2, 4, 6],
+    "Longshot": [2, 3, 4, 5],
+    "Noxus": [3, 5, 7, 10],
+    "Piltover": [2, 4, 6],
+    "Quickstriker": [2, 3, 4, 5],
+    "Riftscourge": [1],
+    "Rune Mage": [1],
+    "Shadow Isles": [2, 3, 4, 5],
+    "Shurima": [2, 3, 4],
+    "Slayer": [2, 4, 6],
+    "Soulbound": [1],
+    "Star Forger": [1],
+    "Targon": [1],
+    "The Boss": [1],
+    "Vanquisher": [2, 3, 4, 5],
+    "Void": [2, 4, 6, 9],
+    "Warden": [2, 3, 4, 5],
+    "World Ender": [1],
+    "Yordle": [2, 4, 5, 8, 10],
+    "Zaun": [3, 5, 7]
 };
 
 // --- AUTH ---
@@ -38,26 +78,44 @@ function renderApp() {
         document.getElementById('planner-section').style.display = 'block';
         document.getElementById('user-display').innerText = JSON.parse(user).username;
         
-        // WICHTIG: Erst das Board zeichnen, dann Synergien (leer) initialisieren
+        // Reset Filter UI beim Login
+        resetFilters();
+        
         drawBoard(); 
         updateSynergies(); 
         loadUnitBank();
     } else {
         document.getElementById('auth-section').style.display = 'flex';
         document.getElementById('planner-section').style.display = 'none';
-        // Cleanup: Synergie-Liste leeren, wenn man sich ausloggt
         document.getElementById('synergy-list').innerHTML = '';
+        document.getElementById('tft-board').innerHTML = '';
     }
+}
+
+function resetFilters() {
+    const search = document.getElementById('search-input');
+    const trait = document.getElementById('trait-filter');
+    const cost = document.getElementById('cost-filter');
+    if (search) search.value = '';
+    if (trait) trait.value = '';
+    if (cost) cost.value = '';
 }
 
 function logout() {
     sessionStorage.removeItem('tft_user');
+    
+    // Eingabefelder Login leeren
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    
+    // Filter leeren
+    resetFilters();
+    
     renderApp();
 }
 
 // --- BOARD STEUERUNG ---
 function clearBoard() {
-    // Bestätigung entfernt, leert das Board sofort
     const slots = document.querySelectorAll('.hex-slot');
     slots.forEach(slot => clearUnit(slot));
     updateSynergies();
@@ -65,6 +123,7 @@ function clearBoard() {
 
 function drawBoard() {
     const board = document.getElementById('tft-board');
+    if (!board) return;
     board.innerHTML = '';
     for (let r = 0; r < 4; r++) {
         const row = document.createElement('div');
@@ -114,8 +173,11 @@ function clearUnit(slot) {
     slot.parentElement.className = 'hex-wrapper';
 }
 
-// --- SYNERGIEN & BANK ---
+// --- SYNERGIEN ---
 function updateSynergies() {
+    const list = document.getElementById('synergy-list');
+    if (!list) return;
+
     const slots = document.querySelectorAll('.hex-slot');
     const counts = {};
     const seen = new Set();
@@ -130,39 +192,70 @@ function updateSynergies() {
         }
     });
 
-    const list = document.getElementById('synergy-list');
-    list.innerHTML = ''; // Liste wird hier jedes Mal komplett geleert
+    list.innerHTML = ''; 
     
-    Object.entries(counts).sort((a,b) => b[1]-a[1]).forEach(([traitName, count]) => {
+    const sortedTraits = Object.entries(counts).sort((a, b) => {
+        const nameA = a[0]; const countA = a[1];
+        const nameB = b[0]; const countB = b[1];
+        const bpsA = traitData[nameA] || [2, 4, 6];
+        const bpsB = traitData[nameB] || [2, 4, 6];
+
+        let tierA = -1;
+        if (bpsA.length === 1 && countA >= bpsA[0]) tierA = 2;
+        else { for (let i = 0; i < bpsA.length; i++) { if (countA >= bpsA[i]) tierA = i; } }
+
+        let tierB = -1;
+        if (bpsB.length === 1 && countB >= bpsB[0]) tierB = 2;
+        else { for (let i = 0; i < bpsB.length; i++) { if (countB >= bpsB[i]) tierB = i; } }
+
+        if (tierA !== tierB) return tierB - tierA;
+        return nameA.localeCompare(nameB);
+    });
+
+    sortedTraits.forEach(([traitName, count]) => {
         const bps = traitData[traitName] || [2, 4, 6];
-        let tierClass = ""; let isActive = false;
+        let tierClass = ""; 
+        let isActive = false;
+        
         for (let i = 0; i < bps.length; i++) {
             if (count >= bps[i]) {
                 isActive = true;
-                tierClass = ["tier-bronze", "tier-silver", "tier-gold", "tier-prismatic"][Math.min(i, 3)];
+                if (bps.length === 1) tierClass = "tier-gold";
+                else tierClass = ["tier-bronze", "tier-silver", "tier-gold", "tier-prismatic"][Math.min(i, 3)];
             }
         }
+
         const iconName = traitName.toLowerCase().replace(/\s+/g, '');
         list.innerHTML += `
             <div class="synergy-item ${isActive ? 'active' : ''} ${tierClass}">
                 <div class="synergy-info">
-                    <img src="/static/img/traits/${iconName}.png" class="trait-icon-mini" onerror="this.style.display='none'">
-                    <span>${traitName}</span>
+                    <div class="trait-icon-container">
+                        <img src="/static/img/traits/${iconName}.png" class="trait-icon-mini" onerror="this.style.display='none'">
+                    </div>
+                    <div class="synergy-count-box">${count}</div>
+                    <div class="synergy-text-data">
+                        <div class="synergy-name">${traitName}</div>
+                        <div class="synergy-thresholds">${bps.join(' / ')}</div>
+                    </div>
                 </div>
-                <span class="synergy-count">${count}</span>
             </div>`;
     });
 }
 
+// --- BANK & FILTER ---
 async function loadUnitBank() {
-    const response = await fetch('/api/units');
-    allUnits = await response.json();
-    populateTraitFilter();
-    displayUnits(allUnits);
+    try {
+        const response = await fetch('/api/units');
+        allUnits = await response.json();
+        populateTraitFilter();
+        // Nach dem Laden der Bank filtern wir sofort (mit leeren Werten), damit die Liste erscheint
+        filterUnits();
+    } catch (e) { console.error(e); }
 }
 
 function populateTraitFilter() {
     const select = document.getElementById('trait-filter');
+    if (!select) return;
     const traits = new Set();
     allUnits.forEach(u => u.traits.forEach(t => traits.add(t)));
     select.innerHTML = '<option value="">Alle Traits</option>';
@@ -170,9 +263,16 @@ function populateTraitFilter() {
 }
 
 function filterUnits() {
-    const search = document.getElementById('search-input').value.toLowerCase();
-    const trait = document.getElementById('trait-filter').value;
-    const cost = document.getElementById('cost-filter').value;
+    const searchInput = document.getElementById('search-input');
+    const traitFilter = document.getElementById('trait-filter');
+    const costFilter = document.getElementById('cost-filter');
+    
+    if (!searchInput || !traitFilter || !costFilter) return;
+
+    const search = searchInput.value.toLowerCase();
+    const trait = traitFilter.value;
+    const cost = costFilter.value;
+
     const filtered = allUnits.filter(u => 
         u.name.toLowerCase().includes(search) && 
         (trait === "" || u.traits.includes(trait)) &&
@@ -183,13 +283,31 @@ function filterUnits() {
 
 function displayUnits(units) {
     const bank = document.getElementById('unit-bank');
+    if (!bank) return;
     bank.innerHTML = '';
     units.forEach(unit => {
         const card = document.createElement('div');
         card.className = 'unit-card';
         card.draggable = true;
-        card.innerHTML = `<div class="icon-container cost-${unit.cost}"><img src="${unit.icon}" class="unit-icon" draggable="false"></div><div class="unit-name">${unit.name}</div>`;
-        card.ondragstart = (e) => { draggedFromSlot = null; e.dataTransfer.setData('application/json', JSON.stringify(unit)); };
+        card.onclick = () => {
+            const slots = document.querySelectorAll('.hex-slot');
+            for (let slot of slots) {
+                if (!slot.dataset.unit) {
+                    placeUnit(slot, unit);
+                    updateSynergies();
+                    break;
+                }
+            }
+        };
+        card.ondragstart = (e) => { 
+            draggedFromSlot = null; 
+            e.dataTransfer.setData('application/json', JSON.stringify(unit)); 
+        };
+        card.innerHTML = `
+            <div class="icon-container cost-${unit.cost}">
+                <img src="${unit.icon}" class="unit-icon" draggable="false">
+            </div>
+            <div class="unit-name">${unit.name}</div>`;
         bank.appendChild(card);
     });
 }
