@@ -1,12 +1,10 @@
 let allUnits = []; 
-let draggedFromSlot = null; // Speichert, von welchem Slot verschoben wird
+let draggedFromSlot = null;
 
-// 1. Authentifizierung
 async function handleAuth(type, event) {
     if (event) event.preventDefault();
     const userVal = document.getElementById('username').value;
     const passVal = document.getElementById('password').value;
-    if (!userVal || !passVal) return alert("Bitte Felder füllen!");
     try {
         const response = await fetch(`/${type}`, {
             method: 'POST',
@@ -18,12 +16,11 @@ async function handleAuth(type, event) {
             if (type === 'login') {
                 sessionStorage.setItem('tft_user', JSON.stringify(data));
                 renderApp();
-            } else { alert("Registriert!"); }
-        } else { alert(data.error); }
-    } catch (err) { console.error(err); }
+            } else alert("Registriert! Du kannst dich einloggen.");
+        } else alert(data.error);
+    } catch (e) { console.error(e); }
 }
 
-// 2. Daten laden
 async function loadUnitBank() {
     try {
         const response = await fetch('/api/units');
@@ -33,37 +30,31 @@ async function loadUnitBank() {
     } catch (e) { console.error(e); }
 }
 
-// 3. Filter
 function populateTraitFilter() {
-    const traitSelect = document.getElementById('trait-filter');
-    if (!traitSelect) return;
-    traitSelect.innerHTML = '<option value="">Alle Traits</option>';
+    const select = document.getElementById('trait-filter');
+    if (!select) return;
     const traits = new Set();
     allUnits.forEach(u => u.traits.forEach(t => traits.add(t)));
-    Array.from(traits).sort().forEach(trait => {
-        const opt = document.createElement('option');
-        opt.value = trait; opt.innerText = trait;
-        traitSelect.appendChild(opt);
+    select.innerHTML = '<option value="">Alle Traits</option>';
+    Array.from(traits).sort().forEach(t => {
+        select.innerHTML += `<option value="${t}">${t}</option>`;
     });
 }
 
 function filterUnits() {
-    const searchTerm = document.getElementById('search-input').value.toLowerCase();
-    const traitTerm = document.getElementById('trait-filter').value;
-    const costTerm = document.getElementById('cost-filter').value;
-    const filtered = allUnits.filter(unit => {
-        const matchesSearch = unit.name.toLowerCase().includes(searchTerm);
-        const matchesTrait = traitTerm === "" || unit.traits.includes(traitTerm);
-        const matchesCost = costTerm === "" || unit.cost.toString() === costTerm;
-        return matchesSearch && matchesTrait && matchesCost;
-    });
+    const search = document.getElementById('search-input').value.toLowerCase();
+    const trait = document.getElementById('trait-filter').value;
+    const cost = document.getElementById('cost-filter').value;
+    const filtered = allUnits.filter(u => 
+        u.name.toLowerCase().includes(search) &&
+        (trait === "" || u.traits.includes(trait)) &&
+        (cost === "" || u.cost.toString() === cost)
+    );
     displayUnits(filtered);
 }
 
-// 4. Anzeige Champion Bank
 function displayUnits(units) {
     const bank = document.getElementById('unit-bank');
-    if (!bank) return;
     bank.innerHTML = '';
     units.forEach(unit => {
         const card = document.createElement('div');
@@ -71,144 +62,108 @@ function displayUnits(units) {
         card.draggable = true;
         card.innerHTML = `
             <div class="icon-container cost-${unit.cost}">
-                <img src="${unit.icon}" class="unit-icon" alt="${unit.name}" draggable="false">
+                <img src="${unit.icon}" class="unit-icon" draggable="false">
             </div>
             <div class="unit-name">${unit.name}</div>
         `;
         card.ondragstart = (e) => {
-            draggedFromSlot = null; // Markieren: Kommt aus der Bank
+            draggedFromSlot = null;
             e.dataTransfer.setData('application/json', JSON.stringify(unit));
         };
         bank.appendChild(card);
     });
 }
 
-// 5. Synergie-Update
 function updateSynergies() {
     const slots = document.querySelectorAll('.hex-slot');
-    const activeTraits = {};
-    const seenUnits = new Set();
-
-    slots.forEach(slot => {
-        if (slot.dataset.unit) {
-            const unit = JSON.parse(slot.dataset.unit);
-            if (!seenUnits.has(unit.name)) {
-                seenUnits.add(unit.name);
-                unit.traits.forEach(t => {
-                    activeTraits[t] = (activeTraits[t] || 0) + 1;
-                });
+    const counts = {};
+    const seen = new Set();
+    slots.forEach(s => {
+        if (s.dataset.unit) {
+            const u = JSON.parse(s.dataset.unit);
+            if (!seen.has(u.name)) {
+                seen.add(u.name);
+                u.traits.forEach(t => counts[t] = (counts[t] || 0) + 1);
             }
         }
     });
-
-    const listContainer = document.getElementById('synergy-list');
-    listContainer.innerHTML = '';
-    const sortedTraits = Object.entries(activeTraits).sort((a, b) => b[1] - a[1]);
-
-    sortedTraits.forEach(([trait, count]) => {
-        const item = document.createElement('div');
-        item.className = 'synergy-item';
-        item.innerHTML = `<span>${trait}</span> <span class="synergy-count">${count}</span>`;
-        listContainer.appendChild(item);
+    const list = document.getElementById('synergy-list');
+    list.innerHTML = '';
+    Object.entries(counts).sort((a,b) => b[1]-a[1]).forEach(([t, c]) => {
+        list.innerHTML += `<div class="synergy-item"><span>${t}</span><span class="synergy-count">${c}</span></div>`;
     });
 }
 
-// 6. Board & Verschiebe-Logik
 function drawBoard() {
     const board = document.getElementById('tft-board');
-    if (!board) return;
-    board.innerHTML = ''; 
+    if(!board) return;
+    board.innerHTML = '';
     for (let r = 0; r < 4; r++) {
-        const rowDiv = document.createElement('div');
-        rowDiv.className = 'board-row';
+        const row = document.createElement('div');
+        row.className = 'board-row';
         for (let c = 0; c < 7; c++) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'hex-wrapper';
+            const wrap = document.createElement('div');
+            wrap.className = 'hex-wrapper';
             const slot = document.createElement('div');
             slot.className = 'hex-slot';
-            slot.draggable = true; // Board-Slots auch draggable machen
+            slot.draggable = true;
 
-            // START DRAG vom Board
             slot.ondragstart = (e) => {
-                if (!slot.dataset.unit) {
-                    e.preventDefault();
-                    return;
-                }
+                if (!slot.dataset.unit) return e.preventDefault();
                 draggedFromSlot = slot;
                 e.dataTransfer.setData('application/json', slot.dataset.unit);
             };
-
             slot.ondragover = (e) => { e.preventDefault(); slot.classList.add('drag-over'); };
             slot.ondragleave = () => slot.classList.remove('drag-over');
-
-            // DROP auf Board (aus Bank oder anderem Slot)
             slot.ondrop = (e) => {
                 e.preventDefault();
                 slot.classList.remove('drag-over');
                 const data = e.dataTransfer.getData('application/json');
                 if (!data) return;
+                const incoming = JSON.parse(data);
+                const currentAtTarget = slot.dataset.unit;
 
-                const incomingUnit = JSON.parse(data);
-                
                 if (draggedFromSlot && draggedFromSlot !== slot) {
-                    // Logik für Swap (Tauschen)
-                    const unitAtTarget = slot.dataset.unit;
-                    
-                    // Ziel-Slot füllen
-                    placeUnitInHex(slot, incomingUnit);
-                    
-                    // Ursprungs-Slot leeren oder mit getauschter Unit füllen
-                    if (unitAtTarget) {
-                        placeUnitInHex(draggedFromSlot, JSON.parse(unitAtTarget));
-                    } else {
-                        clearHex(draggedFromSlot);
-                    }
-                } else {
-                    // Normales Platzieren aus der Bank
-                    placeUnitInHex(slot, incomingUnit);
+                    if (currentAtTarget) placeUnit(draggedFromSlot, JSON.parse(currentAtTarget));
+                    else clearUnit(draggedFromSlot);
                 }
+                placeUnit(slot, incoming);
                 updateSynergies();
             };
-
-            slot.oncontextmenu = (e) => {
-                e.preventDefault();
-                clearHex(slot);
-                updateSynergies();
-            };
-
-            wrapper.appendChild(slot);
-            rowDiv.appendChild(wrapper);
+            slot.oncontextmenu = (e) => { e.preventDefault(); clearUnit(slot); updateSynergies(); };
+            wrap.appendChild(slot);
+            row.appendChild(wrap);
         }
-        board.appendChild(rowDiv);
+        board.appendChild(row);
     }
 }
 
-function placeUnitInHex(slot, unit) {
+function placeUnit(slot, unit) {
     slot.dataset.unit = JSON.stringify(unit);
-    slot.innerHTML = `<img src="${unit.icon}" title="${unit.name}" draggable="false">`;
-    slot.className = `hex-slot placed-cost-${unit.cost}`;
+    slot.innerHTML = `<img src="${unit.icon}" draggable="false">`;
+    const wrapper = slot.parentElement;
+    if (wrapper) {
+        wrapper.className = `hex-wrapper cost-${unit.cost}`;
+    }
 }
 
-function clearHex(slot) {
+function clearUnit(slot) {
     slot.innerHTML = '';
     delete slot.dataset.unit;
-    slot.className = 'hex-slot';
+    const wrapper = slot.parentElement;
+    if (wrapper) {
+        wrapper.className = 'hex-wrapper';
+    }
 }
 
-// 7. App State
 function renderApp() {
-    const userString = sessionStorage.getItem('tft_user');
-    const authSection = document.getElementById('auth-section');
-    const plannerSection = document.getElementById('planner-section');
-    if (userString) {
-        authSection.style.display = 'none';
-        plannerSection.style.display = 'block';
-        document.getElementById('user-display').innerText = JSON.parse(userString).username;
+    const user = sessionStorage.getItem('tft_user');
+    if (user) {
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('planner-section').style.display = 'block';
+        document.getElementById('user-display').innerText = JSON.parse(user).username;
         drawBoard();
         loadUnitBank();
-    } else {
-        authSection.style.display = 'flex';
-        plannerSection.style.display = 'none';
     }
 }
 
