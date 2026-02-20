@@ -7,10 +7,7 @@ HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 # Mapping von URL zu gewünschtem lokalem Dateinamen
 missing_icons = {
-    "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_9_bilgewater.png": "bilgewater.png",
-    "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_12_ascendant.tft_set12.png": "ascendant.png",
-    "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_5_eternal.png": "eternal.png",
-    "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_4_theboss.png": "theboss.png"
+    "https://raw.communitydragon.org/latest/game/assets/ux/traiticons/trait_icon_16_defender.png": "defender.png"
 }
 
 def download_missing():

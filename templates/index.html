@@ -16,15 +16,18 @@
             <input type="password" id="password" placeholder="Passwort" required>
             <div class="auth-buttons">
                 <button type="submit">Login</button>
-                <button type="button" onclick="handleAuth('register')">Registrieren</button>
+                <button type="button" class="secondary-btn" onclick="handleAuth('register')">Registrieren</button>
             </div>
         </form>
     </div>
 
     <div id="planner-section" style="display: none;">
         <div class="planner-header">
-            <h2>Strategie von <span id="user-display"></span></h2>
-            <button onclick="logout()">Abmelden</button>
+            <h2>Strategie von <span id="user-display" style="color: #38bdf8;"></span></h2>
+            <div class="header-actions">
+                <button class="clear-btn" onclick="clearBoard()">Board leeren</button>
+                <button class="logout-btn" onclick="logout()">Abmelden</button>
+            </div>
         </div>
 
         <div class="main-planner-area">
