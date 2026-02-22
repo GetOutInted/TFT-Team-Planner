@@ -1,116 +1,364 @@
+/* --- THEME VARIABLEN --- */
+:root {
+    --bg-color: #0f172a;
+    --card-bg: #1e293b;
+    --text-color: #f8fafc;
+    --border-color: #334155;
+    --accent-color: #38bdf8;
+    --accent-hover: #7dd3fc;
+    --input-bg: #111827;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --success: #10b981;
+}
+
+body.light-mode {
+    --bg-color: #f1f5f9;
+    --card-bg: #ffffff;
+    --text-color: #1e293b;
+    --border-color: #cbd5e1;
+    --accent-color: #2563eb;
+    --accent-hover: #1d4ed8;
+    --input-bg: #f8fafc;
+    --danger: #dc2626;
+    --warning: #d97706;
+    --success: #059669;
+}
+
 /* --- GLOBAL DESIGN --- */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #1e293b; }
-::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
-* { scrollbar-width: thin; scrollbar-color: #475569 #1e293b; box-sizing: border-box; }
+* { 
+    box-sizing: border-box; 
+    transition: background-color 0.2s, border-color 0.2s, transform 0.2s, color 0.2s; 
+}
 
 body {
-    background-color: #0f172a; color: white;
-    font-family: 'Segoe UI', Roboto, sans-serif; margin: 0;
-    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    min-height: 100vh;
 }
 
-/* --- AUTH --- */
-#auth-section { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; width: 100%; }
+/* --- NAVIGATION --- */
+.main-nav {
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 2rem;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo { 
+    font-weight: bold; 
+    font-size: 1.5rem; 
+    color: var(--accent-color); 
+}
+
+/* Navigations-Buttons */
+.nav-links {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.nav-links a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+}
+
+.nav-links a:hover { 
+    background-color: var(--accent-color); 
+    color: #000;
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+.nav-links a.logout-link {
+    color: var(--danger) !important;
+    border-color: var(--danger);
+}
+
+.nav-links a.logout-link:hover {
+    background-color: var(--danger);
+    color: #fff !important;
+}
+
+/* --- CONTENT --- */
+.content-wrapper { 
+    max-width: 1200px; 
+    margin: 0 auto; 
+    padding: 0 20px 40px; 
+}
+
+/* --- LOGIN / AUTHENTICATION --- */
+#auth-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+}
+
 .auth-form {
-    background: #1e293b; padding: 40px; border-radius: 16px; border: 1px solid #334155;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; width: 100%; max-width: 350px;
-}
-.auth-form input {
-    display: block; width: 100%; margin: 15px 0; padding: 12px;
-    background: #111827; border: 1px solid #374151; color: white; border-radius: 8px;
+    background: var(--card-bg); 
+    padding: 2.5rem; 
+    border-radius: 16px; 
+    border: 1px solid var(--border-color); 
+    width: 100%;
+    max-width: 400px; 
+    display: flex;
+    flex-direction: column; 
+    gap: 15px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
 }
 
-/* --- HEADER --- */
-.planner-header { 
-    display: flex; justify-content: space-between; align-items: center; 
-    width: 100%; max-width: 1100px; margin-bottom: 30px; border-bottom: 1px solid #334155; padding-bottom: 10px;
+.auth-form h1 {
+    margin: 0 0 10px 0;
+    text-align: center;
+    color: var(--accent-color);
 }
-.header-actions { display: flex; gap: 10px; }
 
-/* --- BUTTONS --- */
-button { background: #38bdf8; color: #0f172a; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-button:hover { background: #7dd3fc; transform: translateY(-1px); }
-.secondary-btn { background: #334155; color: white; }
-.logout-btn { background: #ef4444; color: white; }
-.clear-btn { background: #f59e0b; color: #0f172a; }
-
-/* --- MAIN LAYOUT --- */
-#planner-section { max-width: 1100px; width: 100%; padding: 20px; }
-.main-planner-area { display: flex; justify-content: center; align-items: flex-start; gap: 30px; margin-bottom: 40px; }
-
-/* --- SYNERGY DESIGN --- */
-.synergy-sidebar { width: 250px; background: #1e293b; padding: 15px; border-radius: 12px; border: 1px solid #334155; max-height: 370px; overflow-y: auto; }
-.synergy-item {
-    display: flex; align-items: center;
-    background: rgba(15, 23, 42, 0.6); padding: 8px; margin-bottom: 8px;
-    border-radius: 8px; border: 1px solid #334155; border-left: 4px solid #475569;
-    opacity: 0.5; transition: all 0.3s;
+.auth-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
 }
-.synergy-item.active { opacity: 1; background: rgba(30, 41, 59, 1); border-color: #475569; }
-.synergy-info { display: flex; align-items: center; gap: 10px; width: 100%; }
-.trait-icon-container {
-    width: 32px; height: 32px; background: #0f172a;
+
+.auth-buttons button {
+    flex: 1; 
+}
+
+/* --- PLANNER LAYOUT --- */
+.planner-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Flexbox sorgt dafür, dass Sidebar und Board nebeneinander sind */
+.main-planner-area {
+    display: flex;
+    flex-direction: row; 
+    gap: 25px;
+    justify-content: center;
+    /* flex-start verhindert, dass eine lange Trait-Liste das Board in die Höhe zieht */
+    align-items: flex-start; 
+    margin-bottom: 40px;
+}
+
+.filter-bar {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    background: var(--card-bg);
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+/* --- BOARD (HEXAGONAL) --- */
+#tft-board { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: flex-start; 
+    gap: 4px; 
+    padding: 30px 72px 30px 30px; 
+    background: var(--card-bg); 
+    border-radius: 16px; 
+    border: 1px solid var(--border-color); 
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.board-row { display: flex; gap: 4px; }
+.board-row:nth-child(even) { transform: translateX(42px); }
+
+.hex-wrapper {
+    width: 80px; height: 90px; background: var(--border-color);
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: background-color 0.2s ease;
 }
-.trait-icon-mini { width: 20px; height: 20px; object-fit: contain; }
-.synergy-count-box {
-    background: #0f172a; color: white; font-weight: bold;
-    width: 28px; height: 32px; display: flex; align-items: center; justify-content: center;
-    border-radius: 4px; border: 1px solid #334155; font-size: 0.9rem; flex-shrink: 0;
+
+.hex-slot {
+    width: 74px; height: 84px; background: var(--input-bg);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    position: relative; cursor: pointer;
+    transition: background-color 0.2s ease;
 }
-.synergy-text-data { display: flex; flex-direction: column; overflow: hidden; }
-.synergy-name { font-weight: bold; font-size: 0.9rem; color: #f8fafc; white-space: nowrap; }
-.synergy-thresholds { font-size: 0.75rem; color: #94a3b8; margin-top: 1px; }
+
+.hex-slot:hover {
+    background: rgba(56, 189, 248, 0.3); 
+}
+
+.hex-slot img { 
+    width: 100%; height: 100%; object-fit: cover; 
+    transition: opacity 0.2s;
+}
+
+.hex-slot:hover img {
+    opacity: 0.8; 
+}
+
+/* --- SYNERGIES --- */
+.synergy-sidebar { 
+    width: 250px; 
+    min-width: 250px; 
+    height: 434px; /* Exakt die errechnete Höhe des Spielfelds */
+    background: var(--card-bg); 
+    padding: 20px 5px 20px 20px; 
+    border-radius: 16px; 
+    border: 1px solid var(--border-color); 
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column; 
+}
+
+#synergy-list {
+    flex-grow: 1; 
+    overflow-y: auto; 
+    padding-right: 10px; 
+}
+
+/* Custom Scrollbar für die Traits */
+#synergy-list::-webkit-scrollbar {
+    width: 6px;
+}
+#synergy-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+#synergy-list::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+}
+#synergy-list::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+
+.synergy-item {
+    display: flex; align-items: center; background: rgba(0,0,0,0.2);
+    padding: 8px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid #475569; opacity: 0.5;
+}
+
+.synergy-item.active { opacity: 1; background: var(--input-bg); }
+.synergy-count-box { background: #000; color: #fff; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 4px; margin-right: 10px; font-weight: bold; }
 
 /* Tiers */
 .tier-bronze { border-left-color: #cd7f32 !important; }
 .tier-silver { border-left-color: #c0c0c0 !important; }
 .tier-gold { border-left-color: #ffd700 !important; }
-.tier-prismatic { border-left-color: #ff00ff !important; box-shadow: 0 0 8px rgba(255, 0, 255, 0.2); }
+.tier-prismatic { border-left-color: #ff00ff !important; box-shadow: 0 0 8px rgba(255, 0, 255, 0.3); }
 
-/* --- BOARD --- */
-#tft-board { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.board-row { display: flex; gap: 4px; }
-.board-row:nth-child(even) { transform: translateX(42px); }
-.hex-wrapper {
-    width: 80px; height: 90px; background: #1e293b;
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-    display: flex; align-items: center; justify-content: center;
+/* --- FORMS & CARDS --- */
+.settings-card, .board-card { 
+    background: var(--card-bg); 
+    padding: 2rem; 
+    border-radius: 16px; 
+    border: 1px solid var(--border-color); 
 }
-.hex-slot {
-    width: 74px; height: 84px; background: #0f172a;
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-    position: relative; cursor: pointer; overflow: hidden;
+
+input, select { 
+    background: var(--input-bg); 
+    border: 1px solid var(--border-color); 
+    color: var(--text-color); 
+    padding: 10px; 
+    border-radius: 8px; 
 }
-.hex-slot img { width: 100%; height: 100%; object-fit: cover; }
 
-/* --- BANK (BEGRENZT) --- */
-.filter-bar { display: flex; gap: 10px; margin-bottom: 20px; background: #1e293b; padding: 15px; border-radius: 12px; }
-.filter-bar input, .filter-bar select { background: #111827; border: 1px solid #374151; color: white; padding: 10px; border-radius: 8px; }
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
 
+/* Standard Button Styling */
+button { 
+    padding: 10px 20px; 
+    border-radius: 8px; 
+    border: none; 
+    font-weight: bold; 
+    cursor: pointer; 
+    background: var(--accent-color); 
+    color: #000; 
+}
+
+button:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+}
+
+button.secondary-btn { background: var(--border-color); color: var(--text-color); }
+button.secondary-btn:hover { background: #475569; }
+
+button.clear-btn { background: var(--warning); color: #fff; }
+button.clear-btn:hover { background: #d97706; }
+
+/* --- UNIT BANK --- */
 #unit-bank { 
     display: grid; 
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); 
     gap: 15px; 
-    background: #1e293b; 
+    background: var(--card-bg); 
     padding: 20px; 
-    border-radius: 12px;
-    /* --- HIER DIE BEGRENZUNG --- */
-    max-height: 400px; 
-    overflow-y: auto;
-    border: 1px solid #334155;
+    border-radius: 12px; 
+    border: 1px solid var(--border-color);
+    max-height: 500px; /* Begrenzt die Höhe der Champion-Auswahl */
+    overflow-y: auto; /* Aktiviert das Scrollen */
 }
 
-.icon-container { width: 60px; height: 60px; margin: 0 auto; border-radius: 8px; overflow: hidden; border: 3px solid #475569; display: flex; justify-content: center; align-items: center; }
-.unit-icon { width: 100%; height: 100%; object-fit: cover; }
-.unit-name { font-size: 0.7rem; margin-top: 5px; color: #94a3b8; text-align: center; }
+/* Custom Scrollbar für die Champion Bank */
+#unit-bank::-webkit-scrollbar {
+    width: 8px;
+}
+#unit-bank::-webkit-scrollbar-track {
+    background: var(--input-bg);
+    border-radius: 8px;
+}
+#unit-bank::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 8px;
+}
+#unit-bank::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
 
-/* KOSTEN */
-.cost-1 { border-color: #94a3b8 !important; } .hex-wrapper.cost-1 { background: #94a3b8 !important; }
-.cost-2 { border-color: #22c55e !important; } .hex-wrapper.cost-2 { background: #22c55e !important; }
-.cost-3 { border-color: #3b82f6 !important; } .hex-wrapper.cost-3 { background: #3b82f6 !important; }
-.cost-4 { border-color: #a855f7 !important; } .hex-wrapper.cost-4 { background: #a855f7 !important; }
-.cost-5 { border-color: #eab308 !important; } .hex-wrapper.cost-5 { background: #eab308 !important; }
+.unit-card { text-align: center; cursor: pointer; transition: transform 0.2s; }
+.unit-card:hover { transform: translateY(-4px); }
+
+.icon-container { 
+    width: 60px; 
+    height: 60px; 
+    border-radius: 10px; 
+    overflow: hidden; 
+    border: 3px solid #475569; 
+    margin: 0 auto; 
+}
+
+.unit-icon { width: 100%; height: 100%; object-fit: cover; }
+
+/* Kosten-Farben */
+.cost-1 { border-color: #94a3b8; } .hex-wrapper.cost-1 { background: #94a3b8; }
+.cost-2 { border-color: #22c55e; } .hex-wrapper.cost-2 { background: #22c55e; }
+.cost-3 { border-color: #3b82f6; } .hex-wrapper.cost-3 { background: #3b82f6; }
+.cost-4 { border-color: #a855f7; } .hex-wrapper.cost-4 { background: #a855f7; }
+.cost-5 { border-color: #eab308; } .hex-wrapper.cost-5 { background: #eab308; }

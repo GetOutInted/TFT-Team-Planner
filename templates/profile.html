@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="profile-section">
+    <h1>Dein Profil</h1>
+    
+    <div class="settings-card">
+        <h3>Einstellungen</h3>
+        <p>Aktuelles Theme: <strong>{{ user.theme }}</strong></p>
+        <button onclick="toggleTheme()">Wechsle zu {{ 'Dark' if user.theme == 'light' else 'Light' }} Mode</button>
+    </div>
+
+    <div class="boards-container">
+        <h3>Deine gespeicherten Boards</h3>
+        <div class="boards-grid">
+            {% for board in boards %}
+            <div class="board-card">
+                <h4>{{ board.name }}</h4>
+                <small>{{ board.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
+                <button class="load-btn" onclick="loadBoard('{{ board.id }}')">Ansehen</button>
+            </div>
+            {% else %}
+            <p>Du hast noch keine Boards gespeichert.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
