@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="planner-section">
+    <div class="planner-header">
+        <h2>Strategie von <span id="user-display" style="color: #38bdf8;">{{ user.username }}</span></h2>
+        <div class="header-actions">
+            <input type="text" id="board-name" placeholder="Team Name...">
+            <button class="save-btn" onclick="saveCurrentBoard()">Board speichern</button>
+            <button class="clear-btn" onclick="clearBoard()">Board leeren</button>
+        </div>
+    </div>
+
+    <div class="main-planner-area">
+        <div class="synergy-sidebar">
+            <h4 style="margin: 0 0 15px 0; color: #38bdf8; text-align: center;">Traits</h4>
+            <div id="synergy-list"></div>
+        </div>
+        <div id="tft-board"></div>
+    </div>
+
+    <h3 style="text-align: center; margin-bottom: 20px;">Champion Auswahl</h3>
+    
+    <div class="filter-bar">
+        <input type="text" id="search-input" placeholder="Champion suchen..." oninput="filterUnits()">
+        <select id="trait-filter" onchange="filterUnits()"></select>
+        <select id="cost-filter" onchange="filterUnits()">
+            <option value="">Alle Kosten</option>
+            <option value="1">1 Gold</option>
+            <option value="2">2 Gold</option>
+            <option value="3">3 Gold</option>
+            <option value="4">4 Gold</option>
+            <option value="5">5 Gold</option>
+        </select>
+        <button type="button" class="reset-filter-btn" onclick="resetFilters(true)">Reset</button>
+    </div>
+
+    <div id="unit-bank"></div>
+</div>
+{% endblock %}

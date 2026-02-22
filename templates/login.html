@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="auth-section">
+    <form class="auth-form" id="login-form">
+        <h1>Willkommen</h1>
+        <input type="text" id="username" placeholder="Nutzername" required>
+        <input type="password" id="password" placeholder="Passwort" required>
+        <div class="auth-buttons">
+            <button type="submit">Login</button>
+            <button type="button" class="secondary-btn" onclick="handleAuth('register')">Registrieren</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
