@@ -2,53 +2,19 @@ let allUnits = [];
 let draggedFromSlot = null;
 
 const traitData = {
-    "Arcanist": [2, 4, 6],
-    "Ascendant": [1],
-    "Assimilator": [1],
-    "Bilgewater": [3, 5, 7, 10],
-    "Blacksmith": [1],
-    "Bruiser": [2, 4, 6],
-    "Caretaker": [1],
-    "Chainbreaker": [1],
-    "Chronokeeper": [1],
-    "Dark Child": [1],
-    "Darkin": [1, 2, 3],
-    "Defender": [2, 4, 6],
-    "Demacia": [3, 5, 7, 11],
-    "Disruptor": [2, 4],
-    "Dragonborn": [1],
-    "Emperor": [1],
-    "Eternal": [1],
-    "Freljord": [3, 5, 7],
-    "Glutton": [1],
-    "Gunslinger": [2, 4],
-    "Harvester": [1],
-    "Heroic": [1],
-    "HexMech": [1],
-    "Huntress": [1],
-    "Immortal": [1],
-    "Invoker": [2, 4],
-    "Ionia": [3, 5, 7, 10],
-    "Ixtal": [3, 5, 7],
-    "Juggernaut": [2, 4, 6],
-    "Longshot": [2, 3, 4, 5],
-    "Noxus": [3, 5, 7, 10],
-    "Piltover": [2, 4, 6],
-    "Quickstriker": [2, 3, 4, 5],
-    "Riftscourge": [1],
-    "Rune Mage": [1],
-    "Shadow Isles": [2, 3, 4, 5],
-    "Shurima": [2, 3, 4],
-    "Slayer": [2, 4, 6],
-    "Soulbound": [1],
-    "Star Forger": [1],
-    "Targon": [1],
-    "The Boss": [1],
-    "Vanquisher": [2, 3, 4, 5],
-    "Void": [2, 4, 6, 9],
-    "Warden": [2, 3, 4, 5],
-    "World Ender": [1],
-    "Yordle": [2, 4, 5, 8, 10],
+    "Arcanist": [2, 4, 6], "Ascendant": [1], "Assimilator": [1], "Bilgewater": [3, 5, 7, 10],
+    "Blacksmith": [1], "Bruiser": [2, 4, 6], "Caretaker": [1], "Chainbreaker": [1],
+    "Chronokeeper": [1], "Dark Child": [1], "Darkin": [1, 2, 3], "Defender": [2, 4, 6],
+    "Demacia": [3, 5, 7, 11], "Disruptor": [2, 4], "Dragonborn": [1], "Emperor": [1],
+    "Eternal": [1], "Freljord": [3, 5, 7], "Glutton": [1], "Gunslinger": [2, 4],
+    "Harvester": [1], "Heroic": [1], "HexMech": [1], "Huntress": [1],
+    "Immortal": [1], "Invoker": [2, 4], "Ionia": [3, 5, 7, 10], "Ixtal": [3, 5, 7],
+    "Juggernaut": [2, 4, 6], "Longshot": [2, 3, 4, 5], "Noxus": [3, 5, 7, 10],
+    "Piltover": [2, 4, 6], "Quickstriker": [2, 3, 4, 5], "Riftscourge": [1],
+    "Rune Mage": [1], "Shadow Isles": [2, 3, 4, 5], "Shurima": [2, 3, 4],
+    "Slayer": [2, 4, 6], "Soulbound": [1], "Star Forger": [1], "Targon": [1],
+    "The Boss": [1], "Vanquisher": [2, 3, 4, 5], "Void": [2, 4, 6, 9],
+    "Warden": [2, 3, 4, 5], "World Ender": [1], "Yordle": [2, 4, 5, 8, 10],
     "Zaun": [3, 5, 7]
 };
 
@@ -77,10 +43,7 @@ function renderApp() {
         document.getElementById('auth-section').style.display = 'none';
         document.getElementById('planner-section').style.display = 'block';
         document.getElementById('user-display').innerText = JSON.parse(user).username;
-        
-        // Reset Filter UI beim Login
-        resetFilters();
-        
+        resetFilters(false);
         drawBoard(); 
         updateSynergies(); 
         loadUnitBank();
@@ -92,25 +55,21 @@ function renderApp() {
     }
 }
 
-function resetFilters() {
+function resetFilters(shouldRefresh = false) {
     const search = document.getElementById('search-input');
     const trait = document.getElementById('trait-filter');
     const cost = document.getElementById('cost-filter');
     if (search) search.value = '';
     if (trait) trait.value = '';
     if (cost) cost.value = '';
+    if (shouldRefresh) filterUnits();
 }
 
 function logout() {
     sessionStorage.removeItem('tft_user');
-    
-    // Eingabefelder Login leeren
     document.getElementById('username').value = '';
     document.getElementById('password').value = '';
-    
-    // Filter leeren
-    resetFilters();
-    
+    resetFilters(false);
     renderApp();
 }
 
@@ -177,11 +136,9 @@ function clearUnit(slot) {
 function updateSynergies() {
     const list = document.getElementById('synergy-list');
     if (!list) return;
-
     const slots = document.querySelectorAll('.hex-slot');
     const counts = {};
     const seen = new Set();
-    
     slots.forEach(s => {
         if (s.dataset.unit) {
             const u = JSON.parse(s.dataset.unit);
@@ -191,32 +148,24 @@ function updateSynergies() {
             }
         }
     });
-
     list.innerHTML = ''; 
-    
     const sortedTraits = Object.entries(counts).sort((a, b) => {
         const nameA = a[0]; const countA = a[1];
         const nameB = b[0]; const countB = b[1];
         const bpsA = traitData[nameA] || [2, 4, 6];
         const bpsB = traitData[nameB] || [2, 4, 6];
-
         let tierA = -1;
         if (bpsA.length === 1 && countA >= bpsA[0]) tierA = 2;
         else { for (let i = 0; i < bpsA.length; i++) { if (countA >= bpsA[i]) tierA = i; } }
-
         let tierB = -1;
         if (bpsB.length === 1 && countB >= bpsB[0]) tierB = 2;
         else { for (let i = 0; i < bpsB.length; i++) { if (countB >= bpsB[i]) tierB = i; } }
-
         if (tierA !== tierB) return tierB - tierA;
         return nameA.localeCompare(nameB);
     });
-
     sortedTraits.forEach(([traitName, count]) => {
         const bps = traitData[traitName] || [2, 4, 6];
-        let tierClass = ""; 
-        let isActive = false;
-        
+        let tierClass = ""; let isActive = false;
         for (let i = 0; i < bps.length; i++) {
             if (count >= bps[i]) {
                 isActive = true;
@@ -224,7 +173,6 @@ function updateSynergies() {
                 else tierClass = ["tier-bronze", "tier-silver", "tier-gold", "tier-prismatic"][Math.min(i, 3)];
             }
         }
-
         const iconName = traitName.toLowerCase().replace(/\s+/g, '');
         list.innerHTML += `
             <div class="synergy-item ${isActive ? 'active' : ''} ${tierClass}">
@@ -248,7 +196,6 @@ async function loadUnitBank() {
         const response = await fetch('/api/units');
         allUnits = await response.json();
         populateTraitFilter();
-        // Nach dem Laden der Bank filtern wir sofort (mit leeren Werten), damit die Liste erscheint
         filterUnits();
     } catch (e) { console.error(e); }
 }
@@ -266,13 +213,10 @@ function filterUnits() {
     const searchInput = document.getElementById('search-input');
     const traitFilter = document.getElementById('trait-filter');
     const costFilter = document.getElementById('cost-filter');
-    
     if (!searchInput || !traitFilter || !costFilter) return;
-
     const search = searchInput.value.toLowerCase();
     const trait = traitFilter.value;
     const cost = costFilter.value;
-
     const filtered = allUnits.filter(u => 
         u.name.toLowerCase().includes(search) && 
         (trait === "" || u.traits.includes(trait)) &&
@@ -292,22 +236,13 @@ function displayUnits(units) {
         card.onclick = () => {
             const slots = document.querySelectorAll('.hex-slot');
             for (let slot of slots) {
-                if (!slot.dataset.unit) {
-                    placeUnit(slot, unit);
-                    updateSynergies();
-                    break;
-                }
+                if (!slot.dataset.unit) { placeUnit(slot, unit); updateSynergies(); break; }
             }
         };
         card.ondragstart = (e) => { 
-            draggedFromSlot = null; 
-            e.dataTransfer.setData('application/json', JSON.stringify(unit)); 
+            draggedFromSlot = null; e.dataTransfer.setData('application/json', JSON.stringify(unit)); 
         };
-        card.innerHTML = `
-            <div class="icon-container cost-${unit.cost}">
-                <img src="${unit.icon}" class="unit-icon" draggable="false">
-            </div>
-            <div class="unit-name">${unit.name}</div>`;
+        card.innerHTML = `<div class="icon-container cost-${unit.cost}"><img src="${unit.icon}" class="unit-icon" draggable="false"></div><div class="unit-name">${unit.name}</div>`;
         bank.appendChild(card);
     });
 }
