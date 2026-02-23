@@ -62,7 +62,6 @@ def profile():
     if 'user_id' not in session:
         return redirect(url_for('index'))
     user = User.query.get(session['user_id'])
-    # Wir laden die Boards direkt mit
     user_boards = Board.query.filter_by(user_id=user.id).order_by(Board.created_at.desc()).all()
     return render_template('profile.html', user=user, boards=user_boards)
 
@@ -84,7 +83,7 @@ def login():
     data = request.get_json()
     user = User.query.filter_by(username=data.get('username')).first()
     if user and bcrypt.check_password_hash(user.password_hash, data.get('password')):
-        session['user_id'] = user.id  # Session setzen
+        session['user_id'] = user.id
         return jsonify({"message": "Eingeloggt"})
     return jsonify({"error": "Falsche Daten"}), 401
 
@@ -104,19 +103,23 @@ def get_units():
 def save_board():
     if 'user_id' not in session: return jsonify({"error": "Nicht eingeloggt"}), 401
     data = request.get_json()
+    
+    print(f"\n[DEBUG] Speichere neues Board für User {session['user_id']}...")
+    layout_data = data.get('layout', [])
+    
     new_board = Board(
         name=data.get('name', 'Unbenanntes Team'),
-        board_data=json.dumps(data.get('layout')),
+        board_data=json.dumps(layout_data),
         user_id=session['user_id']
     )
     db.session.add(new_board)
     db.session.commit()
-    return jsonify({"message": "Board gespeichert"})
+    return jsonify({"message": "Board gespeichert", "board_id": new_board.id})
 
-# NEUE ROUTE: Lade ein spezifisches Board
 @app.route('/api/get_board/<int:board_id>')
 def get_board(board_id):
     if 'user_id' not in session: return jsonify({"error": "Nicht eingeloggt"}), 401
+    
     board = Board.query.filter_by(id=board_id, user_id=session['user_id']).first()
     if not board: return jsonify({"error": "Board nicht gefunden"}), 404
     
@@ -124,6 +127,22 @@ def get_board(board_id):
         "name": board.name,
         "layout": json.loads(board.board_data)
     })
+
+# NEUE ROUTE: Board löschen
+@app.route('/api/delete_board/<int:board_id>', methods=['DELETE'])
+def delete_board(board_id):
+    if 'user_id' not in session: 
+        return jsonify({"error": "Nicht eingeloggt"}), 401
+    
+    # Sicherstellen, dass das Board auch wirklich dem angemeldeten User gehört
+    board = Board.query.filter_by(id=board_id, user_id=session['user_id']).first()
+    
+    if not board:
+        return jsonify({"error": "Board nicht gefunden oder keine Berechtigung"}), 404
+        
+    db.session.delete(board)
+    db.session.commit()
+    return jsonify({"message": "Board erfolgreich gelöscht"})
 
 @app.route('/api/update_theme', methods=['POST'])
 def update_theme():

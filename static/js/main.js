@@ -23,13 +23,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const boardElement = document.getElementById('tft-board');
     if (boardElement) {
         drawBoard();
-        await fetchUnits(); // Warten, bis die Units geladen sind
+        await fetchUnits(); 
         
-        // Prüfen, ob wir ein Board aus dem Profil laden sollen
         const urlParams = new URLSearchParams(window.location.search);
         const boardId = urlParams.get('board_id');
         if (boardId) {
-            console.log("Erkannte Board-ID in URL:", boardId);
             fetchAndApplyBoard(boardId);
         }
     }
@@ -183,8 +181,13 @@ function updateSynergies() {
     traitsArray.forEach(t => {
         const item = document.createElement('div');
         item.className = `synergy-item ${t.isActive ? 'active' : ''} ${t.tierClass}`;
+        
+        // Formatiert den Namen: Komplett klein, ohne Leerzeichen (z.B. "Shadow Isles" -> "shadowisles")
+        const iconFilename = t.trait.toLowerCase().replace(/[^a-z0-9]/g, '');
+
         item.innerHTML = `
             <div class="synergy-count-box">${t.count}</div>
+            <img src="/static/img/traits/${iconFilename}.png" class="synergy-icon" alt="${t.trait}" onerror="this.style.display='none'">
             <div>
                 <div style="font-weight:bold; font-size:0.85rem;">${t.trait}</div>
                 <div style="font-size:0.7rem; opacity:0.7;">${t.thresholds.join(' / ')}</div>
@@ -272,17 +275,14 @@ function loadBoard(id) {
 
 async function fetchAndApplyBoard(id) {
     try {
-        console.log("Frage Backend nach Board mit ID:", id);
         const res = await fetch(`/api/get_board/${id}`);
         
         if (res.ok) {
             const data = await res.json();
-            console.log("Erfolgreich geladene Board-Daten:", data);
             
             const nameInput = document.getElementById('board-name');
             if (nameInput) nameInput.value = data.name;
             
-            // Absicherung: Falls die Daten als JSON-String statt als Array ankommen
             let layoutData = data.layout;
             if (typeof layoutData === 'string') {
                 layoutData = JSON.parse(layoutData);
@@ -296,15 +296,29 @@ async function fetchAndApplyBoard(id) {
                     }
                 });
                 updateSynergies();
-                console.log("Champions erfolgreich platziert!");
-            } else {
-                console.warn("Das Layout in der Datenbank ist leer oder ungültig.");
             }
-        } else {
-            console.error("Backend meldet einen Fehler:", res.status, await res.text());
         }
     } catch (error) {
         console.error("Fehler beim Abrufen des Boards:", error);
+    }
+}
+
+async function deleteBoard(id) {
+    if (!confirm("Möchtest du dieses Board wirklich löschen?")) return;
+
+    try {
+        const res = await fetch(`/api/delete_board/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (res.ok) {
+            location.reload(); 
+        } else {
+            const data = await res.json();
+            alert("Fehler beim Löschen: " + data.error);
+        }
+    } catch (error) {
+        console.error("Fehler beim Löschen des Boards:", error);
     }
 }
 
