@@ -10,6 +10,7 @@
     --danger: #ef4444;
     --warning: #f59e0b;
     --success: #10b981;
+    --inactive-bg: rgba(0, 0, 0, 0.2); 
 }
 
 body.light-mode {
@@ -23,12 +24,21 @@ body.light-mode {
     --danger: #dc2626;
     --warning: #d97706;
     --success: #059669;
+    --inactive-bg: rgba(0, 0, 0, 0.05); 
 }
 
-/* --- GLOBAL DESIGN --- */
+body.light-mode .synergy-icon {
+    filter: invert(1);
+    opacity: 0.8; 
+}
+
+/* --- GLOBAL DESIGN & SCROLLBARS --- */
 * { 
     box-sizing: border-box; 
     transition: background-color 0.2s, border-color 0.2s, transform 0.2s, color 0.2s; 
+    /* Für Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) var(--input-bg);
 }
 
 body {
@@ -38,6 +48,13 @@ body {
     margin: 0;
     min-height: 100vh;
 }
+
+/* Globale Scrollbar für Chrome, Edge & Safari */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--input-bg); border-radius: 8px; }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+
 
 /* --- NAVIGATION --- */
 .main-nav {
@@ -62,7 +79,6 @@ body {
     color: var(--accent-color); 
 }
 
-/* Navigations-Buttons */
 .nav-links {
     display: flex;
     gap: 15px;
@@ -136,9 +152,7 @@ body {
     margin-top: 10px;
 }
 
-.auth-buttons button {
-    flex: 1; 
-}
+.auth-buttons button { flex: 1; }
 
 /* --- PLANNER LAYOUT --- */
 .planner-header {
@@ -155,13 +169,11 @@ body {
     gap: 10px;
 }
 
-/* Flexbox sorgt dafür, dass Sidebar und Board nebeneinander sind */
 .main-planner-area {
     display: flex;
     flex-direction: row; 
     gap: 25px;
     justify-content: center;
-    /* flex-start verhindert, dass eine lange Trait-Liste das Board in die Höhe zieht */
     align-items: flex-start; 
     margin-bottom: 40px;
 }
@@ -208,24 +220,15 @@ body {
     transition: background-color 0.2s ease;
 }
 
-.hex-slot:hover {
-    background: rgba(56, 189, 248, 0.3); 
-}
-
-.hex-slot img { 
-    width: 100%; height: 100%; object-fit: cover; 
-    transition: opacity 0.2s;
-}
-
-.hex-slot:hover img {
-    opacity: 0.8; 
-}
+.hex-slot:hover { background: rgba(56, 189, 248, 0.3); }
+.hex-slot img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.2s; }
+.hex-slot:hover img { opacity: 0.8; }
 
 /* --- SYNERGIES --- */
 .synergy-sidebar { 
     width: 250px; 
     min-width: 250px; 
-    height: 434px; /* Exakt die errechnete Höhe des Spielfelds */
+    height: 434px; 
     background: var(--card-bg); 
     padding: 20px 5px 20px 20px; 
     border-radius: 16px; 
@@ -241,30 +244,23 @@ body {
     padding-right: 10px; 
 }
 
-/* Custom Scrollbar für die Traits */
-#synergy-list::-webkit-scrollbar {
-    width: 6px;
-}
-#synergy-list::-webkit-scrollbar-track {
-    background: transparent;
-}
-#synergy-list::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 10px;
-}
-#synergy-list::-webkit-scrollbar-thumb:hover {
-    background: #64748b;
-}
-
 .synergy-item {
-    display: flex; align-items: center; background: rgba(0,0,0,0.2);
+    display: flex; align-items: center; 
+    background: var(--inactive-bg); 
     padding: 8px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid #475569; opacity: 0.5;
 }
 
 .synergy-item.active { opacity: 1; background: var(--input-bg); }
 .synergy-count-box { background: #000; color: #fff; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 4px; margin-right: 10px; font-weight: bold; }
 
-/* Tiers */
+.synergy-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    margin-right: 10px;
+    transition: filter 0.2s, opacity 0.2s; 
+}
+
 .tier-bronze { border-left-color: #cd7f32 !important; }
 .tier-silver { border-left-color: #c0c0c0 !important; }
 .tier-gold { border-left-color: #ffd700 !important; }
@@ -278,7 +274,7 @@ body {
     border: 1px solid var(--border-color); 
 }
 
-input, select { 
+input { 
     background: var(--input-bg); 
     border: 1px solid var(--border-color); 
     color: var(--text-color); 
@@ -286,12 +282,29 @@ input, select {
     border-radius: 8px; 
 }
 
+/* NEU: Select-Feld anpassen (eigener Pfeil) */
+select {
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 10px 35px 10px 10px; /* Rechts mehr Platz für den Pfeil */
+    border-radius: 8px;
+    appearance: none; /* Entfernt den Windows-Standard-Pfeil */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    /* Custom Pfeil-Icon SVG in unserer Accent-Farbe */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+}
+
 input:focus, select:focus {
     outline: none;
     border-color: var(--accent-color);
 }
 
-/* Standard Button Styling */
 button { 
     padding: 10px 20px; 
     border-radius: 8px; 
@@ -302,14 +315,9 @@ button {
     color: #000; 
 }
 
-button:hover {
-    background: var(--accent-hover);
-    transform: translateY(-2px);
-}
-
+button:hover { background: var(--accent-hover); transform: translateY(-2px); }
 button.secondary-btn { background: var(--border-color); color: var(--text-color); }
 button.secondary-btn:hover { background: #475569; }
-
 button.clear-btn { background: var(--warning); color: #fff; }
 button.clear-btn:hover { background: #d97706; }
 
@@ -322,38 +330,13 @@ button.clear-btn:hover { background: #d97706; }
     padding: 20px; 
     border-radius: 12px; 
     border: 1px solid var(--border-color);
-    max-height: 500px; /* Begrenzt die Höhe der Champion-Auswahl */
-    overflow-y: auto; /* Aktiviert das Scrollen */
-}
-
-/* Custom Scrollbar für die Champion Bank */
-#unit-bank::-webkit-scrollbar {
-    width: 8px;
-}
-#unit-bank::-webkit-scrollbar-track {
-    background: var(--input-bg);
-    border-radius: 8px;
-}
-#unit-bank::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 8px;
-}
-#unit-bank::-webkit-scrollbar-thumb:hover {
-    background: #64748b;
+    max-height: 500px; 
+    overflow-y: auto; 
 }
 
 .unit-card { text-align: center; cursor: pointer; transition: transform 0.2s; }
 .unit-card:hover { transform: translateY(-4px); }
-
-.icon-container { 
-    width: 60px; 
-    height: 60px; 
-    border-radius: 10px; 
-    overflow: hidden; 
-    border: 3px solid #475569; 
-    margin: 0 auto; 
-}
-
+.icon-container { width: 60px; height: 60px; border-radius: 10px; overflow: hidden; border: 3px solid #475569; margin: 0 auto; }
 .unit-icon { width: 100%; height: 100%; object-fit: cover; }
 
 /* Kosten-Farben */
