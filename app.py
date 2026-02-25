@@ -1,5 +1,6 @@
 import requests
 import json
+import os  # NEU: Wird für den zufälligen Schlüssel benötigt
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from models import db, bcrypt, User, Unit, Board
 from flask_cors import CORS
@@ -7,7 +8,10 @@ from flask_cors import CORS
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tft_planner.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'tft-geheimnis-super-sicher-123' # Wichtig für Sessions
+
+# ÄNDERUNG: Generiert bei jedem Serverstart einen neuen geheimen Schlüssel.
+# Dadurch werden alle vorherigen Sessions (Browser-Cookies) automatisch ungültig!
+app.config['SECRET_KEY'] = os.urandom(24) 
 CORS(app)
 
 db.init_app(app)
@@ -85,7 +89,7 @@ def login():
     if user and bcrypt.check_password_hash(user.password_hash, data.get('password')):
         session['user_id'] = user.id
         return jsonify({"message": "Eingeloggt"})
-    return jsonify({"error": "Falsche Daten"}), 401
+    return jsonify({"error": "Flascher Nutzername oder Passwort"}), 401
 
 @app.route('/logout')
 def logout():
@@ -104,17 +108,29 @@ def save_board():
     if 'user_id' not in session: return jsonify({"error": "Nicht eingeloggt"}), 401
     data = request.get_json()
     
-    print(f"\n[DEBUG] Speichere neues Board für User {session['user_id']}...")
+    board_id = data.get('boardId')
+    name = data.get('name', 'Unbenanntes Team')
     layout_data = data.get('layout', [])
+    user_id = session['user_id']
     
+    # Update existierendes Board
+    if board_id:
+        board = Board.query.filter_by(id=board_id, user_id=user_id).first()
+        if board:
+            board.name = name
+            board.board_data = json.dumps(layout_data)
+            db.session.commit()
+            return jsonify({"message": "Board erfolgreich aktualisiert!", "board_id": board.id})
+            
+    # Neues Board erstellen, falls keine ID vorhanden oder Board nicht gefunden wurde
     new_board = Board(
-        name=data.get('name', 'Unbenanntes Team'),
+        name=name,
         board_data=json.dumps(layout_data),
-        user_id=session['user_id']
+        user_id=user_id
     )
     db.session.add(new_board)
     db.session.commit()
-    return jsonify({"message": "Board gespeichert", "board_id": new_board.id})
+    return jsonify({"message": "Neues Board gespeichert!", "board_id": new_board.id})
 
 @app.route('/api/get_board/<int:board_id>')
 def get_board(board_id):
@@ -128,17 +144,12 @@ def get_board(board_id):
         "layout": json.loads(board.board_data)
     })
 
-# NEUE ROUTE: Board löschen
 @app.route('/api/delete_board/<int:board_id>', methods=['DELETE'])
 def delete_board(board_id):
-    if 'user_id' not in session: 
-        return jsonify({"error": "Nicht eingeloggt"}), 401
-    
-    # Sicherstellen, dass das Board auch wirklich dem angemeldeten User gehört
+    if 'user_id' not in session: return jsonify({"error": "Nicht eingeloggt"}), 401
     board = Board.query.filter_by(id=board_id, user_id=session['user_id']).first()
     
-    if not board:
-        return jsonify({"error": "Board nicht gefunden oder keine Berechtigung"}), 404
+    if not board: return jsonify({"error": "Board nicht gefunden oder keine Berechtigung"}), 404
         
     db.session.delete(board)
     db.session.commit()

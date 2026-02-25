@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>TFT Planner</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/tft_logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script>
         const currentTheme = "{{ user.theme if user else 'dark' }}";
         document.addEventListener('DOMContentLoaded', () => {
@@ -14,7 +13,8 @@
         });
     </script>
 </head>
-<body class="dark-mode"> <nav class="main-nav">
+<body class="dark-mode"> 
+    <nav class="main-nav">
         <div class="nav-container">
             <span class="logo">TFT Team Planner</span>
             {% if session['user_id'] %}
@@ -30,6 +30,8 @@
     <main class="content-wrapper">
         {% block content %}{% endblock %}
     </main>
+
+    <div id="toast-container"></div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
