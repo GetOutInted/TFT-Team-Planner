@@ -1,7 +1,7 @@
 let allUnits = [];
 let draggedFromSlot = null;
+let currentBoardId = null;
 
-// Synergie-Grenzwerte
 const traitData = {
     "Arcanist": [2, 4, 6], "Ascendant": [1], "Assimilator": [1], "Bilgewater": [3, 5, 7, 10],
     "Blacksmith": [1], "Bruiser": [2, 4, 6], "Caretaker": [1], "Chainbreaker": [1],
@@ -41,6 +41,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
+// --- TOAST FUNKTION (NEU) ---
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    // Erstellt das Element
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerText = message;
+    
+    container.appendChild(toast);
+
+    // Timeout sorgt dafür, dass die Slide-In Animation getriggert wird
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+
+    // Nach 3 Sekunden (3000ms) gleitet es wieder raus und wird gelöscht
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            toast.remove();
+        }, 300); // Wartet bis die CSS-Animation fertig ist
+    }, 3000);
+}
+
 // --- BACKEND API ---
 async function handleAuth(type) {
     const user = document.getElementById('username').value;
@@ -52,8 +78,13 @@ async function handleAuth(type) {
         body: JSON.stringify({username: user, password: pass})
     });
     
-    if (res.ok) window.location.href = '/planner';
-    else alert((await res.json()).error);
+    if (res.ok) {
+        window.location.href = '/planner';
+    } else {
+        const data = await res.json();
+        // Hier wird das unschöne alert() durch den Toast ersetzt
+        showToast(data.error, 'error'); 
+    }
 }
 
 async function fetchUnits() {
@@ -127,7 +158,18 @@ function clearBoard() {
         delete s.dataset.unit;
         s.parentElement.className = 'hex-wrapper';
     });
+    
+    document.getElementById('board-name').value = '';
+    currentBoardId = null;
+    
+    const url = new URL(window.location);
+    url.searchParams.delete('board_id');
+    window.history.replaceState({}, '', url);
+
     updateSynergies();
+    
+    // Kleines Extra: Gibt dem User Feedback, wenn er das Board leert
+    showToast("Board wurde geleert", "info");
 }
 
 // --- SYNERGIE BERECHNUNG ---
@@ -182,7 +224,6 @@ function updateSynergies() {
         const item = document.createElement('div');
         item.className = `synergy-item ${t.isActive ? 'active' : ''} ${t.tierClass}`;
         
-        // Formatiert den Namen: Komplett klein, ohne Leerzeichen (z.B. "Shadow Isles" -> "shadowisles")
         const iconFilename = t.trait.toLowerCase().replace(/[^a-z0-9]/g, '');
 
         item.innerHTML = `
@@ -252,6 +293,7 @@ function resetFilters() {
 }
 
 // --- PROFILE ACTIONS & BOARD LADEN ---
+
 async function saveCurrentBoard() {
     const name = document.getElementById('board-name').value || "Unbenanntes Team";
     const layout = [];
@@ -264,9 +306,23 @@ async function saveCurrentBoard() {
     const res = await fetch('/api/save_board', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ name, layout })
+        body: JSON.stringify({ boardId: currentBoardId, name, layout })
     });
-    if (res.ok) alert("Board gespeichert!");
+    
+    if (res.ok) {
+        const data = await res.json();
+        if (data.board_id && !currentBoardId) {
+            currentBoardId = data.board_id;
+            const url = new URL(window.location);
+            url.searchParams.set('board_id', currentBoardId);
+            window.history.replaceState({}, '', url);
+        }
+        // Erfolgs-Toast
+        showToast(data.message, 'success');
+    } else {
+        // Fehler-Toast
+        showToast("Fehler beim Speichern des Boards!", 'error');
+    }
 }
 
 function loadBoard(id) {
@@ -276,10 +332,9 @@ function loadBoard(id) {
 async function fetchAndApplyBoard(id) {
     try {
         const res = await fetch(`/api/get_board/${id}`);
-        
         if (res.ok) {
             const data = await res.json();
-            
+            currentBoardId = id;
             const nameInput = document.getElementById('board-name');
             if (nameInput) nameInput.value = data.name;
             
@@ -297,6 +352,8 @@ async function fetchAndApplyBoard(id) {
                 });
                 updateSynergies();
             }
+        } else {
+             showToast("Das Board konnte nicht geladen werden", 'error');
         }
     } catch (error) {
         console.error("Fehler beim Abrufen des Boards:", error);
@@ -315,7 +372,8 @@ async function deleteBoard(id) {
             location.reload(); 
         } else {
             const data = await res.json();
-            alert("Fehler beim Löschen: " + data.error);
+            // Fehler-Toast
+            showToast("Fehler beim Löschen: " + data.error, 'error');
         }
     } catch (error) {
         console.error("Fehler beim Löschen des Boards:", error);
