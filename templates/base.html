@@ -16,7 +16,8 @@
 <body class="dark-mode"> 
     <nav class="main-nav">
         <div class="nav-container">
-            <span class="logo">TFT Team Planner</span>
+            <span class="logo" id="logo-easter-egg" style="cursor: pointer;" title="Nichts zu sehen hier...">TFT Team Planner</span>
+            
             {% if session['user_id'] %}
             <div class="nav-links">
                 <a href="{{ url_for('planner') }}">Planner</a>
@@ -30,6 +31,17 @@
     <main class="content-wrapper">
         {% block content %}{% endblock %}
     </main>
+
+    <div id="confirmation-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3>Bist du sicher?</h3>
+            <p>Möchtest du dieses Board wirklich unwiderruflich löschen?</p>
+            <div class="modal-actions">
+                <button id="modal-cancel-btn" class="secondary-btn">Abbrechen</button>
+                <button id="modal-confirm-btn" class="clear-btn">Ja, löschen</button>
+            </div>
+        </div>
+    </div>
 
     <div id="toast-container"></div>
 
