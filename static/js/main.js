@@ -1,6 +1,8 @@
 let allUnits = [];
 let draggedFromSlot = null;
 let currentBoardId = null;
+// NEU: Speichert temporär die ID des Boards, das gelöscht werden soll
+let boardIdToDelete = null; 
 
 const traitData = {
     "Arcanist": [2, 4, 6], "Ascendant": [1], "Assimilator": [1], "Bilgewater": [3, 5, 7, 10],
@@ -20,6 +22,19 @@ const traitData = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
+    
+    // --- NEU: EASTER EGG ---
+    const logoEasterEgg = document.getElementById('logo-easter-egg');
+    if (logoEasterEgg) {
+        logoEasterEgg.addEventListener('click', () => {
+            // Spielt den Sound ab
+            const audio = new Audio('/static/sounds/veigar.mp3');
+            audio.play().catch(error => console.log("Sound konnte nicht abgespielt werden:", error));
+            
+        });
+    }
+    // --- ENDE EASTER EGG ---
+
     const boardElement = document.getElementById('tft-board');
     if (boardElement) {
         drawBoard();
@@ -39,31 +54,34 @@ document.addEventListener('DOMContentLoaded', async () => {
             handleAuth('login');
         };
     }
+
+    const modal = document.getElementById('confirmation-modal');
+    if (modal) {
+        document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
+        document.getElementById('modal-confirm-btn').addEventListener('click', confirmDeletion);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+    }
 });
 
-// --- TOAST FUNKTION (NEU) ---
+// --- TOAST FUNKTION (VERBESSERT) ---
 function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
-    // Erstellt das Element
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    toast.innerText = message;
+    // Wir fügen nur den Text ein, das Icon kommt per CSS
+    toast.innerText = message; 
     
     container.appendChild(toast);
 
-    // Timeout sorgt dafür, dass die Slide-In Animation getriggert wird
-    setTimeout(() => {
-        toast.classList.add('show');
-    }, 10);
+    setTimeout(() => { toast.classList.add('show'); }, 10);
 
-    // Nach 3 Sekunden (3000ms) gleitet es wieder raus und wird gelöscht
     setTimeout(() => {
         toast.classList.remove('show');
-        setTimeout(() => {
-            toast.remove();
-        }, 300); // Wartet bis die CSS-Animation fertig ist
+        setTimeout(() => { toast.remove(); }, 400); 
     }, 3000);
 }
 
@@ -82,7 +100,6 @@ async function handleAuth(type) {
         window.location.href = '/planner';
     } else {
         const data = await res.json();
-        // Hier wird das unschöne alert() durch den Toast ersetzt
         showToast(data.error, 'error'); 
     }
 }
@@ -168,7 +185,6 @@ function clearBoard() {
 
     updateSynergies();
     
-    // Kleines Extra: Gibt dem User Feedback, wenn er das Board leert
     showToast("Board wurde geleert", "info");
 }
 
@@ -317,10 +333,8 @@ async function saveCurrentBoard() {
             url.searchParams.set('board_id', currentBoardId);
             window.history.replaceState({}, '', url);
         }
-        // Erfolgs-Toast
         showToast(data.message, 'success');
     } else {
-        // Fehler-Toast
         showToast("Fehler beim Speichern des Boards!", 'error');
     }
 }
@@ -360,23 +374,43 @@ async function fetchAndApplyBoard(id) {
     }
 }
 
-async function deleteBoard(id) {
-    if (!confirm("Möchtest du dieses Board wirklich löschen?")) return;
+// NEU: Modal Funktionen
+function openModal(id) {
+    boardIdToDelete = id;
+    document.getElementById('confirmation-modal').classList.remove('hidden');
+}
+
+function closeModal() {
+    boardIdToDelete = null;
+    document.getElementById('confirmation-modal').classList.add('hidden');
+}
+
+// ANGEPASST: Wird jetzt vom "Löschen"-Button im Profil aufgerufen
+function deleteBoard(id) {
+    openModal(id);
+}
+
+// NEU: Führt die eigentliche Löschung aus, wenn im Modal bestätigt wird
+async function confirmDeletion() {
+    if (!boardIdToDelete) return;
 
     try {
-        const res = await fetch(`/api/delete_board/${id}`, {
+        const res = await fetch(`/api/delete_board/${boardIdToDelete}`, {
             method: 'DELETE'
         });
         
+        closeModal(); // Modal schließen
+
         if (res.ok) {
+            // Seite neu laden, um die Liste zu aktualisieren
             location.reload(); 
         } else {
             const data = await res.json();
-            // Fehler-Toast
             showToast("Fehler beim Löschen: " + data.error, 'error');
         }
     } catch (error) {
         console.error("Fehler beim Löschen des Boards:", error);
+        closeModal();
     }
 }
 
