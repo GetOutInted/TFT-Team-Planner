@@ -24,6 +24,13 @@ class Unit(db.Model):
     traits = db.Column(db.String(200)) # Gespeichert als "Mage, Rebel"
     icon_path = db.Column(db.String(300))
 
+class Item(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    item_id = db.Column(db.String(100), unique=True, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    icon_path = db.Column(db.String(255))
+
+
 # NEU: Tabelle für die gespeicherten Teams/Boards
 class Board(db.Model):
     id = db.Column(db.Integer, primary_key=True)

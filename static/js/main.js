@@ -1,7 +1,7 @@
 let allUnits = [];
+let allItems = []; 
 let draggedFromSlot = null;
 let currentBoardId = null;
-// NEU: Speichert temporär die ID des Boards, das gelöscht werden soll
 let boardIdToDelete = null; 
 
 const traitData = {
@@ -22,23 +22,20 @@ const traitData = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-    
-    // --- NEU: EASTER EGG ---
     const logoEasterEgg = document.getElementById('logo-easter-egg');
     if (logoEasterEgg) {
         logoEasterEgg.addEventListener('click', () => {
-            // Spielt den Sound ab
             const audio = new Audio('/static/sounds/veigar.mp3');
             audio.play().catch(error => console.log("Sound konnte nicht abgespielt werden:", error));
-            
+            // ANGEPASST: Toast entfernt!
         });
     }
-    // --- ENDE EASTER EGG ---
 
     const boardElement = document.getElementById('tft-board');
     if (boardElement) {
         drawBoard();
         await fetchUnits(); 
+        await fetchItems(); 
         
         const urlParams = new URLSearchParams(window.location.search);
         const boardId = urlParams.get('board_id');
@@ -65,20 +62,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// --- TOAST FUNKTION (VERBESSERT) ---
 function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     if (!container) return;
-
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    // Wir fügen nur den Text ein, das Icon kommt per CSS
     toast.innerText = message; 
-    
     container.appendChild(toast);
-
     setTimeout(() => { toast.classList.add('show'); }, 10);
-
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => { toast.remove(); }, 400); 
@@ -86,21 +77,38 @@ function showToast(message, type = 'info') {
 }
 
 // --- BACKEND API ---
+
+// ANGEPASST: Intelligente Auth-Funktion mit Validierung und Registrierungs-Toast
 async function handleAuth(type) {
     const user = document.getElementById('username').value;
     const pass = document.getElementById('password').value;
     
-    const res = await fetch(`/${type}`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({username: user, password: pass})
-    });
-    
-    if (res.ok) {
-        window.location.href = '/planner';
-    } else {
+    if (!user || !pass) {
+        showToast("Bitte fülle Benutzername und Passwort aus!", "warning");
+        return;
+    }
+
+    try {
+        const res = await fetch(`/${type}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username: user, password: pass})
+        });
+        
         const data = await res.json();
-        showToast(data.error, 'error'); 
+        
+        if (res.ok) {
+            if (type === 'register') {
+                showToast("Erfolgreich registriert! Du kannst dich jetzt einloggen.", "success");
+                document.getElementById('password').value = '';
+            } else {
+                window.location.href = '/planner';
+            }
+        } else {
+            showToast(data.error || "Ein Fehler ist aufgetreten", 'error'); 
+        }
+    } catch (error) {
+        showToast("Netzwerkfehler. Bitte versuche es später nochmal.", "error");
     }
 }
 
@@ -109,6 +117,18 @@ async function fetchUnits() {
     allUnits = await res.json();
     populateTraitFilter();
     displayUnits(allUnits);
+}
+
+async function fetchItems() {
+    try {
+        const res = await fetch('/api/items');
+        if (res.ok) {
+            allItems = await res.json();
+            displayItems(allItems);
+        }
+    } catch (error) {
+        console.error("Fehler beim Laden der Items:", error);
+    }
 }
 
 // --- BOARD LOGIK ---
@@ -129,10 +149,16 @@ function drawBoard() {
             slot.ondragstart = (e) => {
                 if (!slot.dataset.unit) return e.preventDefault();
                 draggedFromSlot = slot;
-                e.dataTransfer.setData('application/json', slot.dataset.unit);
+                const payload = {
+                    unit: JSON.parse(slot.dataset.unit),
+                    items: slot.dataset.items ? JSON.parse(slot.dataset.items) : [],
+                    isMovedChampion: true
+                };
+                e.dataTransfer.setData('application/json', JSON.stringify(payload));
             };
             slot.ondragover = (e) => e.preventDefault();
             slot.ondrop = (e) => handleDrop(e, slot);
+            
             slot.oncontextmenu = (e) => { e.preventDefault(); clearUnit(slot); };
 
             wrap.appendChild(slot);
@@ -145,54 +171,116 @@ function drawBoard() {
 function handleDrop(e, slot) {
     const data = e.dataTransfer.getData('application/json');
     if (!data) return;
-    const unit = JSON.parse(data);
+    
+    const droppedObj = JSON.parse(data);
+
+    if (droppedObj.isItem) {
+        if (!slot.dataset.unit) {
+            showToast("Du musst zuerst einen Champion platzieren!", "warning");
+            return;
+        }
+        
+        let currentItems = slot.dataset.items ? JSON.parse(slot.dataset.items) : [];
+        if (currentItems.length >= 3) {
+            showToast("Dieser Champion hat bereits 3 Items!", "warning");
+            return;
+        }
+        
+        currentItems.push(droppedObj);
+        placeUnit(slot, JSON.parse(slot.dataset.unit), currentItems);
+        return;
+    }
 
     if (draggedFromSlot && draggedFromSlot !== slot) {
-        const targetData = slot.dataset.unit;
-        if (targetData) placeUnit(draggedFromSlot, JSON.parse(targetData));
-        else clearUnit(draggedFromSlot);
+        const targetUnitData = slot.dataset.unit;
+        const targetItemsData = slot.dataset.items;
+        
+        const sourceUnit = droppedObj.unit;
+        const sourceItems = droppedObj.items || [];
+
+        if (targetUnitData) {
+            placeUnit(draggedFromSlot, JSON.parse(targetUnitData), targetItemsData ? JSON.parse(targetItemsData) : []);
+        } else {
+            clearUnit(draggedFromSlot);
+        }
+        placeUnit(slot, sourceUnit, sourceItems);
+        updateSynergies();
+        return;
     }
-    placeUnit(slot, unit);
+
+    placeUnit(slot, droppedObj, []);
     updateSynergies();
 }
 
-function placeUnit(slot, unit) {
+function placeUnit(slot, unit, items = []) {
     slot.dataset.unit = JSON.stringify(unit);
-    slot.innerHTML = `<img src="${unit.icon}" draggable="false">`;
+    
+    if (items.length > 0) {
+        slot.dataset.items = JSON.stringify(items);
+    } else {
+        delete slot.dataset.items;
+    }
+    
+    renderHex(slot);
+    updateSynergies();
+}
+
+function renderHex(slot) {
+    if (!slot.dataset.unit) return;
+    
+    const unit = JSON.parse(slot.dataset.unit);
+    let html = `<img src="${unit.icon}" draggable="false" class="champion-img">`;
+    
+    if (slot.dataset.items) {
+        const items = JSON.parse(slot.dataset.items);
+        if (items.length > 0) {
+            html += `<div class="item-container">`;
+            items.forEach((item, index) => {
+                html += `<img src="${item.icon}" class="mini-item" title="${item.name}" 
+                         oncontextmenu="removeSpecificItem(event, this.parentElement.parentElement, ${index})" 
+                         draggable="false">`;
+            });
+            html += `</div>`;
+        }
+    }
+    
+    slot.innerHTML = html;
     slot.parentElement.className = `hex-wrapper cost-${unit.cost}`;
 }
 
 function clearUnit(slot) {
     slot.innerHTML = '';
     delete slot.dataset.unit;
+    delete slot.dataset.items;
     slot.parentElement.className = 'hex-wrapper';
     updateSynergies();
 }
 
-function clearBoard() {
-    document.querySelectorAll('.hex-slot').forEach(s => {
-        s.innerHTML = '';
-        delete s.dataset.unit;
-        s.parentElement.className = 'hex-wrapper';
-    });
+window.removeSpecificItem = function(e, slot, itemIndex) {
+    e.preventDefault();
+    e.stopPropagation(); 
     
+    if (!slot.dataset.items) return;
+    
+    let items = JSON.parse(slot.dataset.items);
+    items.splice(itemIndex, 1); 
+    
+    placeUnit(slot, JSON.parse(slot.dataset.unit), items);
+};
+
+function clearBoard() {
+    document.querySelectorAll('.hex-slot').forEach(s => clearUnit(s));
     document.getElementById('board-name').value = '';
     currentBoardId = null;
-    
     const url = new URL(window.location);
     url.searchParams.delete('board_id');
     window.history.replaceState({}, '', url);
-
-    updateSynergies();
-    
     showToast("Board wurde geleert", "info");
 }
 
-// --- SYNERGIE BERECHNUNG ---
 function updateSynergies() {
     const list = document.getElementById('synergy-list');
     if (!list) return;
-    
     const slots = document.querySelectorAll('.hex-slot');
     const counts = {};
     const seenNames = new Set();
@@ -212,7 +300,6 @@ function updateSynergies() {
         let tierClass = "";
         let isActive = false;
         let tierLevel = 0; 
-
         for (let i = 0; i < thresholds.length; i++) {
             if (count >= thresholds[i]) {
                 isActive = true;
@@ -229,9 +316,7 @@ function updateSynergies() {
     });
 
     traitsArray.sort((a, b) => {
-        if (b.tierLevel !== a.tierLevel) {
-            return b.tierLevel - a.tierLevel; 
-        }
+        if (b.tierLevel !== a.tierLevel) return b.tierLevel - a.tierLevel; 
         return a.trait.localeCompare(b.trait);
     });
 
@@ -239,9 +324,7 @@ function updateSynergies() {
     traitsArray.forEach(t => {
         const item = document.createElement('div');
         item.className = `synergy-item ${t.isActive ? 'active' : ''} ${t.tierClass}`;
-        
         const iconFilename = t.trait.toLowerCase().replace(/[^a-z0-9]/g, '');
-
         item.innerHTML = `
             <div class="synergy-count-box">${t.count}</div>
             <img src="/static/img/traits/${iconFilename}.png" class="synergy-icon" alt="${t.trait}" onerror="this.style.display='none'">
@@ -255,6 +338,21 @@ function updateSynergies() {
 }
 
 // --- FILTER & BANK ---
+function switchTab(tabName) {
+    document.getElementById('champion-container').classList.add('hidden');
+    document.getElementById('item-container').classList.add('hidden');
+    document.getElementById('tab-champions').classList.remove('active');
+    document.getElementById('tab-items').classList.remove('active');
+
+    if (tabName === 'champions') {
+        document.getElementById('champion-container').classList.remove('hidden');
+        document.getElementById('tab-champions').classList.add('active');
+    } else if (tabName === 'items') {
+        document.getElementById('item-container').classList.remove('hidden');
+        document.getElementById('tab-items').classList.add('active');
+    }
+}
+
 function displayUnits(units) {
     const bank = document.getElementById('unit-bank');
     if (!bank) return;
@@ -271,9 +369,36 @@ function displayUnits(units) {
             draggedFromSlot = null;
             e.dataTransfer.setData('application/json', JSON.stringify(unit));
         };
+        
         div.onclick = () => {
             const emptySlot = Array.from(document.querySelectorAll('.hex-slot')).find(s => !s.dataset.unit);
-            if (emptySlot) { placeUnit(emptySlot, unit); updateSynergies(); }
+            if (emptySlot) { 
+                placeUnit(emptySlot, unit); 
+                updateSynergies(); 
+            } else {
+                showToast("Das Board ist bereits voll!", "warning");
+            }
+        };
+        
+        bank.appendChild(div);
+    });
+}
+
+function displayItems(items) {
+    const bank = document.getElementById('item-bank');
+    if (!bank) return;
+    bank.innerHTML = '';
+    items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'item-card';
+        div.innerHTML = `
+            <div class="icon-container"><img src="${item.icon}" class="unit-icon" alt="${item.name}"></div>
+            <div style="font-size:0.75rem; margin-top:4px;">${item.name}</div>
+        `;
+        div.draggable = true;
+        div.ondragstart = (e) => {
+            draggedFromSlot = null;
+            e.dataTransfer.setData('application/json', JSON.stringify({ ...item, isItem: true }));
         };
         bank.appendChild(div);
     });
@@ -283,13 +408,22 @@ function filterUnits() {
     const search = document.getElementById('search-input').value.toLowerCase();
     const trait = document.getElementById('trait-filter').value;
     const cost = document.getElementById('cost-filter').value;
-
     const filtered = allUnits.filter(u => 
         u.name.toLowerCase().includes(search) &&
         (trait === "" || u.traits.includes(trait)) &&
         (cost === "" || u.cost == cost)
     );
     displayUnits(filtered);
+}
+
+function filterItems() {
+    const search = document.getElementById('item-search-input').value.toLowerCase();
+    const category = document.getElementById('item-category-filter').value;
+    const filtered = allItems.filter(i => 
+        i.name.toLowerCase().includes(search) &&
+        (category === "" || i.category === category)
+    );
+    displayItems(filtered);
 }
 
 function populateTraitFilter() {
@@ -308,14 +442,24 @@ function resetFilters() {
     filterUnits();
 }
 
-// --- PROFILE ACTIONS & BOARD LADEN ---
+function resetItemFilters() {
+    document.getElementById('item-search-input').value = '';
+    document.getElementById('item-category-filter').value = '';
+    filterItems();
+}
 
+// --- PROFILE ACTIONS & BOARD LADEN ---
 async function saveCurrentBoard() {
     const name = document.getElementById('board-name').value || "Unbenanntes Team";
     const layout = [];
+    
     document.querySelectorAll('.hex-slot').forEach(slot => {
         if (slot.dataset.unit) {
-            layout.push({ index: slot.dataset.index, unit: JSON.parse(slot.dataset.unit) });
+            layout.push({ 
+                index: slot.dataset.index, 
+                unit: JSON.parse(slot.dataset.unit),
+                items: slot.dataset.items ? JSON.parse(slot.dataset.items) : []
+            });
         }
     });
 
@@ -339,9 +483,7 @@ async function saveCurrentBoard() {
     }
 }
 
-function loadBoard(id) {
-    window.location.href = `/planner?board_id=${id}`;
-}
+function loadBoard(id) { window.location.href = `/planner?board_id=${id}`; }
 
 async function fetchAndApplyBoard(id) {
     try {
@@ -353,28 +495,20 @@ async function fetchAndApplyBoard(id) {
             if (nameInput) nameInput.value = data.name;
             
             let layoutData = data.layout;
-            if (typeof layoutData === 'string') {
-                layoutData = JSON.parse(layoutData);
-            }
+            if (typeof layoutData === 'string') layoutData = JSON.parse(layoutData);
             
             if (layoutData && Array.isArray(layoutData)) {
                 layoutData.forEach(item => {
                     const slot = document.querySelector(`.hex-slot[data-index="${item.index}"]`);
-                    if (slot && item.unit) {
-                        placeUnit(slot, item.unit);
-                    }
+                    if (slot && item.unit) placeUnit(slot, item.unit, item.items || []);
                 });
-                updateSynergies();
             }
         } else {
              showToast("Das Board konnte nicht geladen werden", 'error');
         }
-    } catch (error) {
-        console.error("Fehler beim Abrufen des Boards:", error);
-    }
+    } catch (error) { console.error("Fehler beim Abrufen des Boards:", error); }
 }
 
-// NEU: Modal Funktionen
 function openModal(id) {
     boardIdToDelete = id;
     document.getElementById('confirmation-modal').classList.remove('hidden');
@@ -385,26 +519,15 @@ function closeModal() {
     document.getElementById('confirmation-modal').classList.add('hidden');
 }
 
-// ANGEPASST: Wird jetzt vom "Löschen"-Button im Profil aufgerufen
-function deleteBoard(id) {
-    openModal(id);
-}
+function deleteBoard(id) { openModal(id); }
 
-// NEU: Führt die eigentliche Löschung aus, wenn im Modal bestätigt wird
 async function confirmDeletion() {
     if (!boardIdToDelete) return;
-
     try {
-        const res = await fetch(`/api/delete_board/${boardIdToDelete}`, {
-            method: 'DELETE'
-        });
-        
-        closeModal(); // Modal schließen
-
-        if (res.ok) {
-            // Seite neu laden, um die Liste zu aktualisieren
-            location.reload(); 
-        } else {
+        const res = await fetch(`/api/delete_board/${boardIdToDelete}`, { method: 'DELETE' });
+        closeModal(); 
+        if (res.ok) location.reload(); 
+        else {
             const data = await res.json();
             showToast("Fehler beim Löschen: " + data.error, 'error');
         }
@@ -417,7 +540,6 @@ async function confirmDeletion() {
 async function toggleTheme() {
     const isDark = document.body.classList.contains('dark-mode');
     const newTheme = isDark ? 'light' : 'dark';
-    
     await fetch('/api/update_theme', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
