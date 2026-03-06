@@ -21,7 +21,7 @@ STANDARD_ITEMS = [
     "Edge of Night", "Evenshroud", "Gargoyle Stoneplate", "Giant Slayer", 
     "Guardbreaker", "Guinsoo's Rageblade", "Hand of Justice", 
     "Hextech Gunblade", "Infinity Edge", "Ionic Spark", "Jeweled Gauntlet", 
-    "Kraken's Fury", "Last Whisper", "Morellonomicon", "Nashor' Tooth", "Protector's Vow", 
+    "Kraken's Fury", "Last Whisper", "Morellonomicon", "Nashor's Tooth", "Protector's Vow", 
     "Quicksilver", "Rabadon's Deathcap", "Red Buff", 
     "Spear of Shojin", "Spirit Visage", 
     "Steadfast Heart", "Sterak's Gage", "Strikers Flail", "Sunfire Cape", 
@@ -101,8 +101,21 @@ def setup_items_from_json():
             if normalized_api_name not in allowed_names_normalized:
                 continue
                 
-            clean_path = raw_path.split('ASSETS/')[-1].lower().replace('.tex', '.png').replace('.dds', '.png')
-            icon_url = f"https://raw.communitydragon.org/latest/game/assets/{clean_path}"
+            # NEU: Lokale Override-Logik für fehlende Bilder
+            local_overrides = {
+                "thedarkinaegis": "/static/img/items/darkin_aegis.png",
+                "thedarkinbow": "/static/img/items/darkin_bow.png",
+                "thedarkinscythe": "/static/img/items/darkin_scythe.png",
+                "thedarkinstaff": "/static/img/items/darkin_staff.png"
+            }
+            
+            if normalized_api_name in local_overrides:
+                # Wir zwingen die App, das lokale Bild zu nutzen!
+                icon_url = local_overrides[normalized_api_name]
+            else:
+                # Normaler API-Aufruf für alle anderen Items
+                clean_path = raw_path.split('ASSETS/')[-1].lower().replace('.tex', '.png').replace('.dds', '.png')
+                icon_url = f"https://raw.communitydragon.org/latest/game/assets/{clean_path}"
             
             if not Item.query.filter_by(name=name).first():
                 new_item = Item(item_id=str(item.get('apiName')), name=name, icon_path=icon_url)
@@ -115,8 +128,7 @@ def setup_items_from_json():
 with app.app_context():
     db.create_all()
     if Unit.query.count() == 0: setup_units_from_json()
-    if Item.query.count() == 0: setup_items_from_json()
-
+    
 # --- SEITEN-ROUTEN ---
 @app.route('/')
 def index():
@@ -236,7 +248,6 @@ def delete_board(board_id):
     db.session.commit()
     return jsonify({"message": "Board erfolgreich gelöscht"})
 
-# NEU: Route zum Löschen des Accounts
 @app.route('/api/delete_account', methods=['DELETE'])
 def delete_account():
     if 'user_id' not in session: 
@@ -248,16 +259,10 @@ def delete_account():
     if not user: 
         return jsonify({"error": "Benutzer nicht gefunden"}), 404
         
-    # 1. Alle Boards des Nutzers löschen
     Board.query.filter_by(user_id=user_id).delete()
-    
-    # 2. Den Nutzer selbst löschen
     db.session.delete(user)
     db.session.commit()
-    
-    # 3. Session beenden
     session.pop('user_id', None)
-    
     return jsonify({"message": "Account erfolgreich gelöscht"})
 
 @app.route('/api/update_theme', methods=['POST'])

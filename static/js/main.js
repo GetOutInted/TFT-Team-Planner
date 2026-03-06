@@ -1,3 +1,14 @@
+// --- DESIGN THEME INJECTION ---
+// Dies wird ganz am Anfang ausgeführt. Prüft den lokalen Speicher und lädt ggf. das LoL-CSS!
+const currentDesign = localStorage.getItem('appDesign') || 'standard';
+if (currentDesign === 'lol') {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = '/static/css/lol-style.css'; 
+    link.id = 'lol-theme-css';
+    document.head.appendChild(link);
+}
+
 let allUnits = [];
 let allItems = []; 
 let draggedFromSlot = null;
@@ -27,7 +38,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         logoEasterEgg.addEventListener('click', () => {
             const audio = new Audio('/static/sounds/veigar.mp3');
             audio.play().catch(error => console.log("Sound konnte nicht abgespielt werden:", error));
-            // ANGEPASST: Toast entfernt!
         });
     }
 
@@ -156,7 +166,6 @@ function drawBoard() {
                 };
                 e.dataTransfer.setData('application/json', JSON.stringify(payload));
                 
-                // ANGEPASST: Der perfekte Ghost-Klon für das Drag-Bild
                 const dragGhost = document.createElement('div');
                 dragGhost.className = `icon-container cost-${unitObj.cost}`;
                 dragGhost.style.position = 'absolute';
@@ -375,7 +384,6 @@ function displayUnits(units) {
     units.forEach(unit => {
         const div = document.createElement('div');
         div.className = 'unit-card';
-        // ANGEPASST: draggable="false" im img-Tag
         div.innerHTML = `
             <div class="icon-container cost-${unit.cost}"><img src="${unit.icon}" class="unit-icon" draggable="false"></div>
             <div style="font-size:0.75rem; margin-top:4px;">${unit.name}</div>
@@ -386,7 +394,6 @@ function displayUnits(units) {
             draggedFromSlot = null;
             e.dataTransfer.setData('application/json', JSON.stringify(unit));
             
-            // ANGEPASST: Der Ghost-Klon für die Bank
             const dragGhost = document.createElement('div');
             dragGhost.className = `icon-container cost-${unit.cost}`;
             dragGhost.style.position = 'absolute';
@@ -419,7 +426,6 @@ function displayItems(items) {
     items.forEach(item => {
         const div = document.createElement('div');
         div.className = 'item-card';
-        // ANGEPASST: draggable="false" im img-Tag
         div.innerHTML = `
             <div class="icon-container"><img src="${item.icon}" class="unit-icon" alt="${item.name}" draggable="false"></div>
             <div style="font-size:0.75rem; margin-top:4px;">${item.name}</div>
@@ -430,7 +436,6 @@ function displayItems(items) {
             draggedFromSlot = null;
             e.dataTransfer.setData('application/json', JSON.stringify({ ...item, isItem: true }));
             
-            // ANGEPASST: Der Ghost-Klon für Items (ohne Kosten-Farbe)
             const dragGhost = document.createElement('div');
             dragGhost.className = `icon-container`;
             dragGhost.style.position = 'absolute';
@@ -551,15 +556,12 @@ async function fetchAndApplyBoard(id) {
     } catch (error) { console.error("Fehler beim Abrufen des Boards:", error); }
 }
 
-// --- MODAL & LÖSCHEN LOGIK ---
-
-let actionToDelete = null; // Speichert, was gelöscht wird: 'board' oder 'account'
+let actionToDelete = null;
 
 function openModal(id) {
     actionToDelete = 'board';
     boardIdToDelete = id;
     
-    // Text für Board-Löschung anpassen
     const modalBox = document.querySelector('#confirmation-modal .modal-box');
     modalBox.querySelector('h3').innerText = "Board löschen?";
     modalBox.querySelector('p').innerText = "Möchtest du dieses Board wirklich unwiderruflich löschen?";
@@ -567,14 +569,12 @@ function openModal(id) {
     document.getElementById('confirmation-modal').classList.remove('hidden');
 }
 
-// NEU: Öffnet das Modal mit Account-Lösch-Texten
 function openAccountDeleteModal() {
     actionToDelete = 'account';
     
-    // Text für Account-Löschung anpassen
     const modalBox = document.querySelector('#confirmation-modal .modal-box');
     modalBox.querySelector('h3').innerText = "Account löschen?";
-    modalBox.querySelector('h3').style.color = "var(--danger)"; // Macht die Überschrift rot
+    modalBox.querySelector('h3').style.color = "var(--danger)"; 
     modalBox.querySelector('p').innerText = "Bist du dir absolut sicher? Alle deine Boards und deine Logindaten werden für immer gelöscht. Das kann nicht rückgängig gemacht werden!";
     
     document.getElementById('confirmation-modal').classList.remove('hidden');
@@ -584,15 +584,12 @@ function closeModal() {
     boardIdToDelete = null;
     actionToDelete = null;
     
-    // Überschrift-Farbe sicherheitshalber wieder auf Blau zurücksetzen
     document.querySelector('#confirmation-modal .modal-box h3').style.color = "var(--accent-color)";
-    
     document.getElementById('confirmation-modal').classList.add('hidden');
 }
 
 function deleteBoard(id) { openModal(id); }
 
-// ANGEPASST: Prüft jetzt, ob 'board' oder 'account' gelöscht werden soll
 async function confirmDeletion() {
     if (actionToDelete === 'board' && boardIdToDelete) {
         try {
@@ -612,7 +609,6 @@ async function confirmDeletion() {
             const res = await fetch('/api/delete_account', { method: 'DELETE' });
             closeModal();
             if (res.ok) {
-                // Bei Erfolg werfen wir den User direkt zur Login-Seite
                 window.location.href = '/'; 
             } else {
                 const data = await res.json();
@@ -634,4 +630,15 @@ async function toggleTheme() {
         body: JSON.stringify({ theme: newTheme })
     });
     location.reload();
+}
+
+// NEU: Funktion zum Wechseln des Designs (Standard vs. LoL)
+function toggleDesign() {
+    const current = localStorage.getItem('appDesign') || 'standard';
+    if (current === 'standard') {
+        localStorage.setItem('appDesign', 'lol');
+    } else {
+        localStorage.setItem('appDesign', 'standard');
+    }
+    location.reload(); // Neu laden, um das CSS anzuwenden
 }
