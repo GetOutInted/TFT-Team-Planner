@@ -21,7 +21,7 @@ STANDARD_ITEMS = [
     "Edge of Night", "Evenshroud", "Gargoyle Stoneplate", "Giant Slayer", 
     "Guardbreaker", "Guinsoo's Rageblade", "Hand of Justice", 
     "Hextech Gunblade", "Infinity Edge", "Ionic Spark", "Jeweled Gauntlet", 
-    "Kraken's Fury", "Last Whisper", "Morellonomicon", "Nashor's Tooth", "Protector's Vow", 
+    "Kraken's Fury", "Last Whisper", "Morellonomicon", "Nashor' Tooth", "Protector's Vow", 
     "Quicksilver", "Rabadon's Deathcap", "Red Buff", 
     "Spear of Shojin", "Spirit Visage", 
     "Steadfast Heart", "Sterak's Gage", "Strikers Flail", "Sunfire Cape", 
@@ -155,7 +155,6 @@ def login():
     if user and bcrypt.check_password_hash(user.password_hash, data.get('password')):
         session['user_id'] = user.id
         return jsonify({"message": "Eingeloggt"})
-    # ANGEPASST: Die neue, exaktere Fehlermeldung
     return jsonify({"error": "Falscher Nutzername oder Passwort"}), 401
 
 @app.route('/logout')
@@ -236,6 +235,30 @@ def delete_board(board_id):
     db.session.delete(board)
     db.session.commit()
     return jsonify({"message": "Board erfolgreich gelöscht"})
+
+# NEU: Route zum Löschen des Accounts
+@app.route('/api/delete_account', methods=['DELETE'])
+def delete_account():
+    if 'user_id' not in session: 
+        return jsonify({"error": "Nicht eingeloggt"}), 401
+    
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    if not user: 
+        return jsonify({"error": "Benutzer nicht gefunden"}), 404
+        
+    # 1. Alle Boards des Nutzers löschen
+    Board.query.filter_by(user_id=user_id).delete()
+    
+    # 2. Den Nutzer selbst löschen
+    db.session.delete(user)
+    db.session.commit()
+    
+    # 3. Session beenden
+    session.pop('user_id', None)
+    
+    return jsonify({"message": "Account erfolgreich gelöscht"})
 
 @app.route('/api/update_theme', methods=['POST'])
 def update_theme():

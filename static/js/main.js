@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         logoEasterEgg.addEventListener('click', () => {
             const audio = new Audio('/static/sounds/veigar.mp3');
             audio.play().catch(error => console.log("Sound konnte nicht abgespielt werden:", error));
+            // ANGEPASST: Toast entfernt!
         });
     }
 
@@ -155,6 +156,7 @@ function drawBoard() {
                 };
                 e.dataTransfer.setData('application/json', JSON.stringify(payload));
                 
+                // ANGEPASST: Der perfekte Ghost-Klon für das Drag-Bild
                 const dragGhost = document.createElement('div');
                 dragGhost.className = `icon-container cost-${unitObj.cost}`;
                 dragGhost.style.position = 'absolute';
@@ -549,31 +551,77 @@ async function fetchAndApplyBoard(id) {
     } catch (error) { console.error("Fehler beim Abrufen des Boards:", error); }
 }
 
+// --- MODAL & LÖSCHEN LOGIK ---
+
+let actionToDelete = null; // Speichert, was gelöscht wird: 'board' oder 'account'
+
 function openModal(id) {
+    actionToDelete = 'board';
     boardIdToDelete = id;
+    
+    // Text für Board-Löschung anpassen
+    const modalBox = document.querySelector('#confirmation-modal .modal-box');
+    modalBox.querySelector('h3').innerText = "Board löschen?";
+    modalBox.querySelector('p').innerText = "Möchtest du dieses Board wirklich unwiderruflich löschen?";
+    
+    document.getElementById('confirmation-modal').classList.remove('hidden');
+}
+
+// NEU: Öffnet das Modal mit Account-Lösch-Texten
+function openAccountDeleteModal() {
+    actionToDelete = 'account';
+    
+    // Text für Account-Löschung anpassen
+    const modalBox = document.querySelector('#confirmation-modal .modal-box');
+    modalBox.querySelector('h3').innerText = "Account löschen?";
+    modalBox.querySelector('h3').style.color = "var(--danger)"; // Macht die Überschrift rot
+    modalBox.querySelector('p').innerText = "Bist du dir absolut sicher? Alle deine Boards und deine Logindaten werden für immer gelöscht. Das kann nicht rückgängig gemacht werden!";
+    
     document.getElementById('confirmation-modal').classList.remove('hidden');
 }
 
 function closeModal() {
     boardIdToDelete = null;
+    actionToDelete = null;
+    
+    // Überschrift-Farbe sicherheitshalber wieder auf Blau zurücksetzen
+    document.querySelector('#confirmation-modal .modal-box h3').style.color = "var(--accent-color)";
+    
     document.getElementById('confirmation-modal').classList.add('hidden');
 }
 
 function deleteBoard(id) { openModal(id); }
 
+// ANGEPASST: Prüft jetzt, ob 'board' oder 'account' gelöscht werden soll
 async function confirmDeletion() {
-    if (!boardIdToDelete) return;
-    try {
-        const res = await fetch(`/api/delete_board/${boardIdToDelete}`, { method: 'DELETE' });
-        closeModal(); 
-        if (res.ok) location.reload(); 
-        else {
-            const data = await res.json();
-            showToast("Fehler beim Löschen: " + data.error, 'error');
+    if (actionToDelete === 'board' && boardIdToDelete) {
+        try {
+            const res = await fetch(`/api/delete_board/${boardIdToDelete}`, { method: 'DELETE' });
+            closeModal(); 
+            if (res.ok) location.reload(); 
+            else {
+                const data = await res.json();
+                showToast("Fehler beim Löschen: " + data.error, 'error');
+            }
+        } catch (error) {
+            console.error("Fehler beim Löschen des Boards:", error);
+            closeModal();
         }
-    } catch (error) {
-        console.error("Fehler beim Löschen des Boards:", error);
-        closeModal();
+    } else if (actionToDelete === 'account') {
+        try {
+            const res = await fetch('/api/delete_account', { method: 'DELETE' });
+            closeModal();
+            if (res.ok) {
+                // Bei Erfolg werfen wir den User direkt zur Login-Seite
+                window.location.href = '/'; 
+            } else {
+                const data = await res.json();
+                showToast("Fehler: " + data.error, 'error');
+            }
+        } catch (error) {
+            console.error("Fehler beim Löschen des Accounts:", error);
+            closeModal();
+        }
     }
 }
 
