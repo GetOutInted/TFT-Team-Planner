@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         logoEasterEgg.addEventListener('click', () => {
             const audio = new Audio('/static/sounds/veigar.mp3');
             audio.play().catch(error => console.log("Sound konnte nicht abgespielt werden:", error));
-            // ANGEPASST: Toast entfernt!
         });
     }
 
@@ -77,8 +76,6 @@ function showToast(message, type = 'info') {
 }
 
 // --- BACKEND API ---
-
-// ANGEPASST: Intelligente Auth-Funktion mit Validierung und Registrierungs-Toast
 async function handleAuth(type) {
     const user = document.getElementById('username').value;
     const pass = document.getElementById('password').value;
@@ -149,12 +146,24 @@ function drawBoard() {
             slot.ondragstart = (e) => {
                 if (!slot.dataset.unit) return e.preventDefault();
                 draggedFromSlot = slot;
+                
+                const unitObj = JSON.parse(slot.dataset.unit);
                 const payload = {
-                    unit: JSON.parse(slot.dataset.unit),
+                    unit: unitObj,
                     items: slot.dataset.items ? JSON.parse(slot.dataset.items) : [],
                     isMovedChampion: true
                 };
                 e.dataTransfer.setData('application/json', JSON.stringify(payload));
+                
+                const dragGhost = document.createElement('div');
+                dragGhost.className = `icon-container cost-${unitObj.cost}`;
+                dragGhost.style.position = 'absolute';
+                dragGhost.style.top = '-1000px'; 
+                dragGhost.innerHTML = `<img src="${unitObj.icon}" class="unit-icon">`;
+                document.body.appendChild(dragGhost);
+                
+                e.dataTransfer.setDragImage(dragGhost, 30, 30);
+                setTimeout(() => document.body.removeChild(dragGhost), 0);
             };
             slot.ondragover = (e) => e.preventDefault();
             slot.ondrop = (e) => handleDrop(e, slot);
@@ -189,6 +198,10 @@ function handleDrop(e, slot) {
         currentItems.push(droppedObj);
         placeUnit(slot, JSON.parse(slot.dataset.unit), currentItems);
         return;
+    }
+
+    if (draggedFromSlot === slot) {
+        return; 
     }
 
     if (draggedFromSlot && draggedFromSlot !== slot) {
@@ -360,14 +373,27 @@ function displayUnits(units) {
     units.forEach(unit => {
         const div = document.createElement('div');
         div.className = 'unit-card';
+        // ANGEPASST: draggable="false" im img-Tag
         div.innerHTML = `
-            <div class="icon-container cost-${unit.cost}"><img src="${unit.icon}" class="unit-icon"></div>
+            <div class="icon-container cost-${unit.cost}"><img src="${unit.icon}" class="unit-icon" draggable="false"></div>
             <div style="font-size:0.75rem; margin-top:4px;">${unit.name}</div>
         `;
         div.draggable = true;
+        
         div.ondragstart = (e) => {
             draggedFromSlot = null;
             e.dataTransfer.setData('application/json', JSON.stringify(unit));
+            
+            // ANGEPASST: Der Ghost-Klon für die Bank
+            const dragGhost = document.createElement('div');
+            dragGhost.className = `icon-container cost-${unit.cost}`;
+            dragGhost.style.position = 'absolute';
+            dragGhost.style.top = '-1000px'; 
+            dragGhost.innerHTML = `<img src="${unit.icon}" class="unit-icon">`;
+            document.body.appendChild(dragGhost);
+            
+            e.dataTransfer.setDragImage(dragGhost, 30, 30);
+            setTimeout(() => document.body.removeChild(dragGhost), 0);
         };
         
         div.onclick = () => {
@@ -391,14 +417,27 @@ function displayItems(items) {
     items.forEach(item => {
         const div = document.createElement('div');
         div.className = 'item-card';
+        // ANGEPASST: draggable="false" im img-Tag
         div.innerHTML = `
-            <div class="icon-container"><img src="${item.icon}" class="unit-icon" alt="${item.name}"></div>
+            <div class="icon-container"><img src="${item.icon}" class="unit-icon" alt="${item.name}" draggable="false"></div>
             <div style="font-size:0.75rem; margin-top:4px;">${item.name}</div>
         `;
         div.draggable = true;
+        
         div.ondragstart = (e) => {
             draggedFromSlot = null;
             e.dataTransfer.setData('application/json', JSON.stringify({ ...item, isItem: true }));
+            
+            // ANGEPASST: Der Ghost-Klon für Items (ohne Kosten-Farbe)
+            const dragGhost = document.createElement('div');
+            dragGhost.className = `icon-container`;
+            dragGhost.style.position = 'absolute';
+            dragGhost.style.top = '-1000px'; 
+            dragGhost.innerHTML = `<img src="${item.icon}" class="unit-icon">`;
+            document.body.appendChild(dragGhost);
+            
+            e.dataTransfer.setDragImage(dragGhost, 30, 30);
+            setTimeout(() => document.body.removeChild(dragGhost), 0);
         };
         bank.appendChild(div);
     });
@@ -502,6 +541,7 @@ async function fetchAndApplyBoard(id) {
                     const slot = document.querySelector(`.hex-slot[data-index="${item.index}"]`);
                     if (slot && item.unit) placeUnit(slot, item.unit, item.items || []);
                 });
+                updateSynergies();
             }
         } else {
              showToast("Das Board konnte nicht geladen werden", 'error');
