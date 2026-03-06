@@ -4,46 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TFT Planner</title>
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/tft_logo.png') }}">
+    
+    <link rel="icon" href="{{ url_for('static', filename='img/tft_logo.png') }}" type="image/png">
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script>
-        const currentTheme = "{{ user.theme if user else 'dark' }}";
-        document.addEventListener('DOMContentLoaded', () => {
-            document.body.className = currentTheme + "-mode";
-        });
-    </script>
+
+    {% if user and user.design == 'lol' %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/lol-style.css') }}">
+    {% endif %}
 </head>
-<body class="dark-mode"> 
+<body class="{% if user and user.theme == 'light' %}light-mode{% endif %}">
+
     <nav class="main-nav">
         <div class="nav-container">
-            <span class="logo" id="logo-easter-egg" style="cursor: pointer;" title="Nichts zu sehen hier...">TFT Team Planner</span>
-            
-            {% if session['user_id'] %}
+            <div class="logo" id="logo-easter-egg" style="cursor: pointer;">TFT Planner</div>
             <div class="nav-links">
-                <a href="{{ url_for('planner') }}">Planner</a>
-                <a href="{{ url_for('profile') }}">Profil</a>
-                <a href="{{ url_for('logout') }}" class="logout-link">Abmelden</a>
+                {% if user %}
+                    <span style="margin-right: 15px; font-size: 0.95rem; opacity: 0.9;">
+                        <strong style="color: var(--accent-color);">{{ user.username }}</strong>
+                    </span>
+                    
+                    <a href="{{ url_for('planner') }}">Planner</a>
+                    <a href="{{ url_for('profile') }}">Profil</a>
+                    <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
+                {% endif %}
             </div>
-            {% endif %}
         </div>
     </nav>
 
-    <main class="content-wrapper">
+    <div class="content-wrapper">
         {% block content %}{% endblock %}
-    </main>
-
-    <div id="confirmation-modal" class="modal-overlay hidden">
-        <div class="modal-box">
-            <h3>Bist du sicher?</h3>
-            <p>Möchtest du dieses Board wirklich unwiderruflich löschen?</p>
-            <div class="modal-actions">
-                <button id="modal-cancel-btn" class="secondary-btn">Abbrechen</button>
-                <button id="modal-confirm-btn" class="clear-btn">Ja, löschen</button>
-            </div>
-        </div>
     </div>
 
     <div id="toast-container"></div>
+    
+    <div id="confirmation-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3>Bestätigung</h3>
+            <p>Bist du sicher?</p>
+            <div class="modal-actions">
+                <button class="secondary-btn" id="modal-cancel-btn">Abbrechen</button>
+                <button class="danger-btn" id="modal-confirm-btn">Löschen</button>
+            </div>
+        </div>
+    </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>

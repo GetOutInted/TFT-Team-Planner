@@ -1,19 +1,13 @@
-// --- DESIGN THEME INJECTION ---
-// Dies wird ganz am Anfang ausgeführt. Prüft den lokalen Speicher und lädt ggf. das LoL-CSS!
-const currentDesign = localStorage.getItem('appDesign') || 'standard';
-if (currentDesign === 'lol') {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = '/static/css/lol-style.css'; 
-    link.id = 'lol-theme-css';
-    document.head.appendChild(link);
-}
-
 let allUnits = [];
 let allItems = []; 
 let draggedFromSlot = null;
 let currentBoardId = null;
 let boardIdToDelete = null; 
+
+// --- NEU: VARIABLEN FÜR DRAG & SCROLL LOGIK ---
+let isAppDragging = false;
+let autoScrollInterval = null;
+let scrollDirection = 0;
 
 const traitData = {
     "Arcanist": [2, 4, 6], "Ascendant": [1], "Assimilator": [1], "Bilgewater": [3, 5, 7, 10],
@@ -33,6 +27,51 @@ const traitData = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
+    
+    // --- NEU: GLOBALE DRAG & SCROLL EVENTS ---
+    document.addEventListener('dragstart', () => isAppDragging = true);
+    
+    document.addEventListener('dragend', () => {
+        isAppDragging = false;
+        stopAutoScroll();
+    });
+    
+    document.addEventListener('drop', () => {
+        isAppDragging = false;
+        stopAutoScroll();
+    });
+
+
+    document.addEventListener('dragover', (e) => {
+        if (!isAppDragging) return;
+        
+        const threshold = 100; // Pixel Abstand zum oberen/unteren Rand
+        
+        if (e.clientY < threshold) {
+            scrollDirection = -18; // Nach oben scrollen
+        } else if (window.innerHeight - e.clientY < threshold) {
+            scrollDirection = 18; // Nach unten scrollen
+        } else {
+            scrollDirection = 0;
+        }
+
+        if (scrollDirection !== 0 && !autoScrollInterval) {
+            autoScrollInterval = setInterval(() => {
+                window.scrollBy(0, scrollDirection);
+            }, 20);
+        } else if (scrollDirection === 0 && autoScrollInterval) {
+            stopAutoScroll();
+        }
+    });
+
+    function stopAutoScroll() {
+        if (autoScrollInterval) {
+            clearInterval(autoScrollInterval);
+            autoScrollInterval = null;
+        }
+        scrollDirection = 0;
+    }
+
     const logoEasterEgg = document.getElementById('logo-easter-egg');
     if (logoEasterEgg) {
         logoEasterEgg.addEventListener('click', () => {
@@ -622,8 +661,9 @@ async function confirmDeletion() {
 }
 
 async function toggleTheme() {
-    const isDark = document.body.classList.contains('dark-mode');
-    const newTheme = isDark ? 'light' : 'dark';
+    const isLight = document.body.classList.contains('light-mode');
+    const newTheme = isLight ? 'dark' : 'light';
+    
     await fetch('/api/update_theme', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -632,13 +672,15 @@ async function toggleTheme() {
     location.reload();
 }
 
-// NEU: Funktion zum Wechseln des Designs (Standard vs. LoL)
-function toggleDesign() {
-    const current = localStorage.getItem('appDesign') || 'standard';
-    if (current === 'standard') {
-        localStorage.setItem('appDesign', 'lol');
-    } else {
-        localStorage.setItem('appDesign', 'standard');
-    }
-    location.reload(); // Neu laden, um das CSS anzuwenden
+async function toggleDesign() {
+    const isLol = document.querySelector('link[href*="lol-style.css"]') !== null;
+    const newDesign = isLol ? 'standard' : 'lol';
+    
+    await fetch('/api/update_design', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ design: newDesign })
+    });
+    
+    location.reload(); 
 }

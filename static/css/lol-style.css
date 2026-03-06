@@ -127,6 +127,7 @@ body {
     text-transform: uppercase; color: var(--text-muted); text-decoration: none; padding: 8px 18px;
     background-color: transparent; border: 1px solid var(--border-color);
     clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    transition: color 0.2s, background-color 0.2s, border-color 0.2s, transform 0.2s;
 }
 
 .nav-links a:hover {
@@ -269,7 +270,7 @@ select {
 input:focus, select:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 2px rgba(200,155,60,0.15), 0 0 12px rgba(200,155,60,0.1); }
 
 /* ============================================================
-   BUTTONS (VOLLSTÄNDIG ÜBERARBEITET)
+   BUTTONS (MIT LIGHT-MODE OPTIMIERUNG)
    ============================================================ */
 button {
     font-family: 'Cinzel', serif;
@@ -284,10 +285,9 @@ button {
     color: var(--accent-color);
     clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
     position: relative;
-    transition: all 0.2s ease-in-out;
+    transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
-/* Hover bei normalen Knöpfen (Goldener Hintergrund, extrem dunkler Text für starken Kontrast) */
 button:hover {
     background: var(--gold-gradient);
     color: #010A13; 
@@ -296,7 +296,6 @@ button:hover {
     box-shadow: 0 4px 16px rgba(200,155,60,0.35);
 }
 
-/* Secondary Button (z.B. Dark/Light Mode Toggle) */
 button.secondary-btn {
     background: var(--card-bg-deep);
     color: var(--text-muted);
@@ -308,7 +307,6 @@ button.secondary-btn:hover {
     border-color: var(--accent-color);
 }
 
-/* Clear Button (z.B. Board leeren) */
 button.clear-btn {
     background: linear-gradient(to bottom, #2A1A08, #1A1008);
     color: var(--warning);
@@ -316,14 +314,13 @@ button.clear-btn {
 }
 button.clear-btn:hover {
     background: linear-gradient(to bottom, var(--warning), #B86A0E);
-    color: #ffffff; /* Weißer Text auf orangenem Hintergrund ist lesbar */
+    color: #ffffff;
     border-color: #F0C070;
 }
 
-/* Danger Button (Account löschen) */
 button.danger-btn {
     display: block; 
-    width: 100%; /* Macht den Button so breit wie die Box */
+    width: 100%; 
     background: linear-gradient(to bottom, #3A0F0A, #280A07);
     color: #E87060;
     border-color: var(--danger);
@@ -334,10 +331,49 @@ button.danger-btn {
 }
 button.danger-btn:hover {
     background: linear-gradient(to bottom, var(--danger), #9B2C1E);
-    color: #ffffff; /* Weißer Text auf rotem Hintergrund */
+    color: #ffffff;
     border-color: #E87060;
     box-shadow: 0 4px 20px rgba(194,59,46,0.35);
     transform: translateY(-2px);
+}
+
+/* --- SPEZIELLE LIGHT-MODE BUTTON OVERRIDES FÜR BESSEREN KONTRAST --- */
+body.light-mode button {
+    background: linear-gradient(to bottom, #F8F4EC 0%, #EAE0CD 100%);
+    color: var(--accent-hover); /* Dunkles Braun/Gold im Light-Mode */
+}
+body.light-mode button:hover {
+    background: var(--gold-gradient);
+    color: #F8F4EC; /* Sehr helles Beige beim Hover */
+    border-color: var(--accent-hover);
+}
+
+body.light-mode button.secondary-btn {
+    background: var(--card-bg-deep);
+    color: var(--text-muted);
+    border-color: var(--border-color);
+}
+body.light-mode button.secondary-btn:hover {
+    background: rgba(200, 155, 60, 0.15);
+    color: var(--accent-hover);
+}
+
+body.light-mode button.clear-btn {
+    background: linear-gradient(to bottom, #FDF4E6, #F2DAB3);
+    color: var(--warning);
+}
+body.light-mode button.clear-btn:hover {
+    background: linear-gradient(to bottom, var(--warning), #A35D0C);
+    color: #ffffff;
+}
+
+body.light-mode button.danger-btn {
+    background: linear-gradient(to bottom, #FAECEB, #F2C2BD);
+    color: var(--danger);
+}
+body.light-mode button.danger-btn:hover {
+    background: linear-gradient(to bottom, var(--danger), #8F2215);
+    color: #ffffff;
 }
 
 /* ============================================================
@@ -412,6 +448,16 @@ button.danger-btn:hover {
 .bank-tab.active {
     background: linear-gradient(to bottom, #1A2A3E, #0F1F30); border-color: var(--accent-color); color: var(--accent-hover);
     box-shadow: 0 2px 12px rgba(200,155,60,0.2);
+}
+
+/* Light Mode Anpassung für Tabs */
+body.light-mode .bank-tab:hover {
+    background: var(--inactive-bg);
+    color: var(--accent-hover);
+}
+body.light-mode .bank-tab.active {
+    background: linear-gradient(to bottom, #F8F4EC 0%, #EAE0CD 100%);
+    border-color: var(--accent-hover);
 }
 
 /* ============================================================

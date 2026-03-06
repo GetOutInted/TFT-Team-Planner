@@ -265,6 +265,7 @@ def delete_account():
     session.pop('user_id', None)
     return jsonify({"message": "Account erfolgreich gelöscht"})
 
+
 @app.route('/api/update_theme', methods=['POST'])
 def update_theme():
     if 'user_id' not in session: return jsonify({"error": "Nicht eingeloggt"}), 401
@@ -274,5 +275,20 @@ def update_theme():
     db.session.commit()
     return jsonify({"message": "Theme aktualisiert"})
 
+@app.route('/api/update_design', methods=['POST'])
+def update_design():
+    if 'user_id' not in session: return jsonify({"error": "Nicht eingeloggt"}), 401
+    data = request.get_json()
+    user = User.query.get(session['user_id'])
+    user.design = data.get('design', 'standard')
+    db.session.commit()
+    return jsonify({"message": "Design aktualisiert"})
+
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+        
+        if Unit.query.count() == 0: setup_units_from_json()
+        if Item.query.count() == 0: setup_items_from_json()
+        
     app.run(debug=True)
